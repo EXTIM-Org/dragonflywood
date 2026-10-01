@@ -5,7 +5,11 @@ import { OrderReceiptEmail } from "@/emails/OrderReceiptEmail";
 import React from "react";
 import { getLogger } from "@/lib/logger";
 
-export async function markOrderAsPaid(orderId: string) {
+export async function markOrderAsPaid(
+  orderId: string,
+  paymentRefId?: string,
+  paymentAuthority?: string
+) {
   // We can't know userId yet, so we use base logger until we fetch order
   const baseLog = getLogger();
   try {
@@ -28,12 +32,14 @@ export async function markOrderAsPaid(orderId: string) {
       return { success: false, error: "این سفارش قبلاً پرداخت شده است." };
     }
 
-    // 2. Update status to PAID
+    // 2. Update status to PAID and record payment reference
     await db.orm.public.Order.where({ id: orderId }).update({
-      status: "PAID"
+      status: "PAID",
+      ...(paymentRefId ? { paymentRefId } : {}),
+      ...(paymentAuthority ? { paymentAuthority } : {}),
     });
     
-    log.info({ orderId, amount: order.totalAmount }, "Order marked as PAID successfully");
+    log.info({ orderId, amount: order.totalAmount, paymentRefId }, "Order marked as PAID successfully");
     
     // 2.5 Increment salesCount for each product in the order
     for (const item of order.items) {

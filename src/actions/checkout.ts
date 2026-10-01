@@ -10,6 +10,7 @@ import { getEffectivePrice } from "@/lib/price";
 import { getLogger } from "@/lib/logger";
 import { calculatePromotionDiscount } from "@/lib/promotions";
 import { rateLimit } from "@/lib/rate-limit";
+import { requestZarinpalPayment } from "@/lib/zarinpal";
 
 const checkoutSchema = z.object({
   receiverName: z.string().min(2, "نام تحویل گیرنده باید حداقل ۲ کاراکتر باشد."),
@@ -268,13 +269,44 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
       });
     }
     
-    // 5. Simulated Payment Success -> Trigger receipt email
-    await markOrderAsPaid(order.id);
-    
-    log.info({ orderId: order.id, amount: finalTotal }, "Checkout process completed successfully");
+    // 5. If payable amount is 0 (e.g. 100% coupon discount)
+    if (finalTotal <= 0) {
+      await markOrderAsPaid(order.id, "FREE-DISCOUNT");
+      log.info({ orderId: order.id, amount: finalTotal }, "Free order completed without payment gateway");
+      return { success: true, orderId: order.id };
+    }
 
-    // Returning success to trigger client-side clear cart
-    return { success: true, orderId: order.id };
+    // 6. Connect to Zarinpal Gateway
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const callbackUrl = `${appUrl}/api/payment/verify?orderId=${order.id}`;
+
+    const zarinpalResult = await requestZarinpalPayment({
+      amount: finalTotal,
+      description: `پرداخت سفارش گالری چوب سنجاقک (شماره سفارش: ${order.id.slice(0, 8)})`,
+      callbackUrl,
+      mobile: phone,
+      email: typeof session.email === "string" ? session.email : undefined,
+    });
+
+    if (!zarinpalResult.success || !zarinpalResult.paymentUrl || !zarinpalResult.authority) {
+      log.error({ err: zarinpalResult.error, orderId: order.id }, "Failed to initiate Zarinpal payment");
+      return {
+        error: zarinpalResult.error || "خطا در اتصال به درگاه پرداخت زرین‌پال. لطفاً مجدداً تلاش کنید.",
+      };
+    }
+
+    // Store payment authority in order
+    await db.orm.public.Order.where({ id: order.id }).update({
+      paymentAuthority: zarinpalResult.authority,
+    });
+
+    log.info({ orderId: order.id, authority: zarinpalResult.authority }, "Redirecting to Zarinpal gateway");
+
+    return {
+      success: true,
+      orderId: order.id,
+      paymentUrl: zarinpalResult.paymentUrl,
+    };
 
   } catch (error) {
     console.error("Checkout error:", error); // Keep console for unhandled outer catch if needed, but we can also use base logger

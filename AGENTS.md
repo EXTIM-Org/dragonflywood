@@ -11,5 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Dragonfly Wood Project Rules & Context
 
 - **Support Chat System**: Do NOT build or suggest a custom support chat system. A third-party service will be used in the future.
-- **Payment Gateway**: Do NOT integrate a real payment gateway (e.g., Zarinpal, Stripe). The current mock payment system is sufficient. The real gateway will be chosen and integrated at the time of final deployment.
+- **Payment Gateway**: Zarinpal payment gateway is integrated. Merchant ID is configured via environment variables (ZARINPAL_MERCHANT_ID).
 - **UI Components**: ALWAYS use the project's custom UI components instead of native HTML elements for a unified experience. For example, use `<DropdownSelect>` (from `@/components/ui/DropdownSelect`) instead of native `<select>` tags in all forms.

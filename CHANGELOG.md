@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - 2026-10-01
 
 ### Added
+- **Zarinpal Payment Gateway Integration**: Integrated Zarinpal v4 REST API gateway (`requestZarinpalPayment`, `verifyZarinpalPayment`) with merchant ID `1c57c4f9-d4a1-42b2-b830-c24daaa89850`, automatic redirection, verification callback handler (`/api/payment/verify`), custom payment result screen (`/checkout/result`), and tracking code display across user and admin order pages.
 - **UI Architecture**: Created a reusable, fully responsive `Modal.tsx` component in `src/components/ui/` with backdrop blur, scroll locking, and max-height constraints.
 
 ### Changed

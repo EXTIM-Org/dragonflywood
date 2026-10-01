@@ -51,6 +51,18 @@ export default async function ProfileOrderDetailPage(props: { params: Promise<{ 
                 {order.totalAmount.toLocaleString('fa-IR')} <span className="text-sm font-normal">تومان</span>
               </div>
             </div>
+
+            {order.paymentRefId && (
+              <>
+                <div className="w-px h-8 bg-gray-200 dark:bg-white/10 hidden md:block" />
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 mb-1">کد پیگیری زرین‌پال</span>
+                  <div className="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-base">
+                    {order.paymentRefId}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

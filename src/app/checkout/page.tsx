@@ -100,9 +100,14 @@ export default function CheckoutPage() {
     }
   };
 
-  // If order is successful, clear cart and show success message
+  // If order is successful, redirect to Zarinpal gateway or show success message
   useEffect(() => {
     if (state?.success) {
+      if (state.paymentUrl) {
+        clearCart();
+        window.location.href = state.paymentUrl;
+        return;
+      }
       clearCart();
       // Auto redirect to orders history after 3 seconds
       const timer = setTimeout(() => {
@@ -110,7 +115,7 @@ export default function CheckoutPage() {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [state?.success, router, clearCart]);
+  }, [state, router, clearCart]);
 
   // Redirect to cart if it's empty
   useEffect(() => {
@@ -119,6 +124,18 @@ export default function CheckoutPage() {
     }
   }, [items.length, isInitialized, state?.success, router]);
 
+
+  if (state?.success && state.paymentUrl) {
+    return (
+      <main className="min-h-screen py-20 px-6 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#516d3e] border-t-transparent rounded-full animate-spin mb-6" />
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">در حال اتصال به درگاه امن زرین‌پال...</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-center max-w-md text-sm">
+          لطفاً چند لحظه شکیبا باشید؛ در حال انتقال به سامانه پرداخت بانکی شاپرک هستید.
+        </p>
+      </main>
+    );
+  }
 
   if (state?.success) {
     return (
@@ -361,6 +378,12 @@ export default function CheckoutPage() {
                 </div>
               </div>
               
+              {state?.error && (
+                <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm rounded-xl text-center font-medium">
+                  {state.error}
+                </div>
+              )}
+
               <SubmitButton />
               
               <p className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
