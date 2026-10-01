@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('/fonts/Vazirmatn-FD-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@theme {
+  --font-vazirmatn-fd: "Vazirmatn FD", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+  }
+  
+  .dark {
+    --background: #0f1115; /* Deep Onyx for premium look */
+    --foreground: #ededed;
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-vazirmatn-fd);
+  }
+
+  input, textarea, select, button {
+    font-family: var(--font-vazirmatn-fd);
+  }
+}

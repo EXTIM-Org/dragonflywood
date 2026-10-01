@@ -1,0 +1,275 @@
+"use server";
+
+import { db } from "@/prisma/db";
+import { getSession } from "@/lib/session";
+import { getEffectivePrice } from "@/lib/price";
+
+import { cartCleanupQueue, abandonedCartQueue } from "@/jobs/queues";
+import { redis } from "@/lib/redis";
+import { calculatePromotionDiscount } from "@/lib/promotions";
+
+const RESERVATION_MINUTES = 15;
+
+/**
+ * Fetch the user's cart from the server.
+ */
+export async function fetchUserCart() {
+  
+  const session = await getSession();
+  if (!session || !session.userId) return { success: false, guest: true, items: [] };
+  
+  const userId = session.userId as string;
+  
+  const cart = await db.orm.public.Cart
+    .where({ userId })
+    .include("items", (i) => i.include("variant", (v) => v.include("product", (p) => p.include("flashSale"))))
+    .first();
+    
+  if (!cart) return { success: true, items: [] };
+  
+  const mappedItems = cart.items.map(item => ({
+    id: item.variantId,
+    productId: item.variant?.productId || "",
+    categoryId: item.variant?.product?.categoryId,
+    variantId: item.variantId,
+    name: item.variant?.product?.name || "محصول نامشخص",
+    variantName: item.variant?.name || null,
+    price: getEffectivePrice(item.variant?.price ?? item.variant?.product?.basePrice ?? 0, item.variant?.product?.discount ?? 0, item.variant?.product?.flashSale).finalPrice,
+    quantity: item.quantity,
+    image: item.variant?.product?.images[0] || "",
+    reservedAt: item.reservedAt,
+  }));
+  
+  // Calculate dynamic promotions
+  let totalCartDiscount = 0;
+  
+  try {
+    const activePromotions = await db.orm.public.PromotionRule.where({ isActive: true }).all();
+    totalCartDiscount = calculatePromotionDiscount(mappedItems, activePromotions);
+  } catch (error) {
+    console.error("Error calculating promotions:", error);
+  }
+  
+  return { success: true, items: mappedItems, cartDiscount: totalCartDiscount };
+}
+
+/**
+ * Sync guest cart to server cart upon login.
+ */
+export async function syncCartServer(localItems: { variantId: string; quantity: number }[]) {
+  const session = await getSession();
+  if (!session || !session.userId) return { success: false, error: "Unauthorized" };
+  
+  for (const item of localItems) {
+    await addToCartServer(item.variantId, item.quantity);
+  }
+  
+  return await fetchUserCart();
+}
+
+/**
+ * Add an item to the cart and reserve inventory.
+ */
+export async function addToCartServer(variantId: string, quantity: number) {
+  if (quantity <= 0) return { success: false, error: "تعداد نامعتبر است." };
+  
+  const session = await getSession();
+  if (!session || !session.userId) return { guest: true };
+  
+  const userId = session.userId as string;
+
+  try {
+    const inventory = await db.orm.public.Inventory.where({ variantId }).first();
+    
+    if (!inventory) {
+      return { success: false, error: "موجودی این کالا یافت نشد." };
+    }
+    
+    // Atomic Inventory Reservation
+    const plan = db.raw.sql`
+      UPDATE inventory 
+      SET "stockQuantity" = "stockQuantity" - ${quantity}, 
+          "reservedStock" = "reservedStock" + ${quantity}
+      WHERE id = ${inventory.id} AND "stockQuantity" >= ${quantity}
+    `.affectedCount().build();
+
+    const { affectedRows } = await db.runtime().execute(plan);
+
+    if (affectedRows === 0) {
+      return { success: false, error: "موجودی کافی برای این تعداد وجود ندارد." };
+    }
+    
+    // Ensure Cart exists
+    let cart = await db.orm.public.Cart.where({ userId }).first();
+    if (!cart) {
+      cart = await db.orm.public.Cart.create({ userId });
+    }
+    
+    // Check if item already in cart
+    const existingItem = await db.orm.public.CartItem
+      .where({ cartId: cart.id, variantId })
+      .first();
+      
+    const reservedAt = new Date().toISOString();
+    
+    let targetCartItemId = "";
+    let newQuantity = quantity;
+
+    if (existingItem) {
+      targetCartItemId = existingItem.id;
+      newQuantity = existingItem.quantity + quantity;
+      // Update existing item
+      await db.orm.public.CartItem.where({ id: existingItem.id }).update({
+        quantity: newQuantity,
+        reservedAt
+      });
+    } else {
+      // Create new item
+      const newItem = await db.orm.public.CartItem.create({
+        cartId: cart.id,
+        variantId,
+        quantity,
+        reservedAt
+      });
+      targetCartItemId = newItem.id;
+    }
+    
+    // Schedule BullMQ job to release reservation after 15 minutes
+    await cartCleanupQueue.add('cleanup', {
+      cartItemId: targetCartItemId,
+      variantId,
+      quantity: newQuantity,
+      reservedAt
+    }, { delay: RESERVATION_MINUTES * 60 * 1000 });
+    
+    // Schedule Abandoned Cart Reminder
+    const settings = await redis.hgetall("settings:notifications");
+    const delayMinutes = parseInt(settings["abandoned_cart_delay_minutes"] || "120", 10);
+    await abandonedCartQueue.add('check-abandoned', {
+      userId,
+      cartUpdatedAt: reservedAt
+    }, { delay: delayMinutes * 60 * 1000 });
+
+    return { success: true, reservedAt };
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    return { success: false, error: "خطایی رخ داد." };
+  }
+}
+
+/**
+ * Update the quantity of a cart item and adjust reservation.
+ */
+export async function updateQuantityServer(variantId: string, quantity: number) {
+  if (quantity <= 0) return { success: false, error: "تعداد نامعتبر است." };
+  
+  const session = await getSession();
+  if (!session || !session.userId) return { guest: true };
+  
+  const userId = session.userId as string;
+  
+  try {
+    const cart = await db.orm.public.Cart.where({ userId }).first();
+    if (!cart) return { success: false, error: "سبد خرید یافت نشد." };
+    
+    const cartItem = await db.orm.public.CartItem.where({ cartId: cart.id, variantId }).first();
+    if (!cartItem) return { success: false, error: "آیتم در سبد خرید یافت نشد." };
+    
+    const inventory = await db.orm.public.Inventory.where({ variantId }).first();
+    if (!inventory) return { success: false, error: "موجودی یافت نشد." };
+    
+    const diff = quantity - cartItem.quantity;
+    
+    if (diff > 0) {
+      // Increasing quantity - atomic update
+      const plan = db.raw.sql`
+        UPDATE inventory 
+        SET "stockQuantity" = "stockQuantity" - ${diff}, 
+            "reservedStock" = "reservedStock" + ${diff}
+        WHERE id = ${inventory.id} AND "stockQuantity" >= ${diff}
+      `.affectedCount().build();
+      
+      const { affectedRows } = await db.runtime().execute(plan);
+      if (affectedRows === 0) {
+        return { success: false, error: "موجودی کافی نیست." };
+      }
+    } else if (diff < 0) {
+      const absDiff = Math.abs(diff);
+      // Decreasing quantity - atomic update
+      const plan = db.raw.sql`
+        UPDATE inventory 
+        SET "stockQuantity" = "stockQuantity" + ${absDiff},
+            "reservedStock" = GREATEST(0, "reservedStock" - ${absDiff})
+        WHERE id = ${inventory.id}
+      `.affectedCount().build();
+      await db.runtime().execute(plan);
+    }
+    
+    const reservedAt = new Date().toISOString();
+    await db.orm.public.CartItem.where({ id: cartItem.id }).update({
+      quantity,
+      reservedAt
+    });
+    
+    // Schedule BullMQ job to release reservation after 15 minutes
+    await cartCleanupQueue.add('cleanup', {
+      cartItemId: cartItem.id,
+      variantId,
+      quantity,
+      reservedAt
+    }, { delay: RESERVATION_MINUTES * 60 * 1000 });
+    
+    // Schedule Abandoned Cart Reminder
+    const settings = await redis.hgetall("settings:notifications");
+    const delayMinutes = parseInt(settings["abandoned_cart_delay_minutes"] || "120", 10);
+    await abandonedCartQueue.add('check-abandoned', {
+      userId,
+      cartUpdatedAt: reservedAt
+    }, { delay: delayMinutes * 60 * 1000 });
+
+    return { success: true, reservedAt };
+  } catch (error) {
+    console.error("Error updating quantity:", error);
+    return { success: false, error: "خطایی رخ داد." };
+  }
+}
+
+/**
+ * Remove an item from the cart and release its reservation.
+ */
+export async function removeFromCartServer(variantId: string) {
+  const session = await getSession();
+  if (!session || !session.userId) return { guest: true };
+  
+  const userId = session.userId as string;
+  
+  try {
+    const cart = await db.orm.public.Cart.where({ userId }).first();
+    if (!cart) return { success: false };
+    
+    const cartItem = await db.orm.public.CartItem.where({ cartId: cart.id, variantId }).first();
+    if (!cartItem) return { success: false };
+    
+    const item = cartItem;
+    
+    // Release inventory atomically
+    const inventory = await db.orm.public.Inventory.where({ variantId }).first();
+      if (inventory) {
+        // Return stock from reserved to available
+        const plan = db.raw.sql`
+          UPDATE inventory 
+          SET "stockQuantity" = "stockQuantity" + ${item.quantity}, 
+              "reservedStock" = GREATEST(0, "reservedStock" - ${item.quantity})
+          WHERE id = ${inventory.id}
+        `.affectedCount().build();
+        await db.runtime().execute(plan);
+      }
+    
+    await db.orm.public.CartItem.where({ id: cartItem.id }).delete();
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error removing from cart:", error);
+    return { success: false, error: "خطایی رخ داد." };
+  }
+}

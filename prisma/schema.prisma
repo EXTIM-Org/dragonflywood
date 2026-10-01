@@ -1,0 +1,439 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  BLOG_ADMIN
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AdminActionType {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  SETTINGS_CHANGE
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum TransactionType {
+  RESTOCK
+  SALE
+  RETURN
+  ADJUSTMENT
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  phoneNumber      String?   @unique
+  phoneVerified    Boolean   @default(false)
+  passwordHash     String?
+  otpCode          String?
+  otpExpiry        DateTime?
+  role             Role      @default(USER)
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  addresses        Address[]
+  orders           Order[]
+  cart             Cart?
+  reviews          Review[]
+  reviewVotes      ReviewVote[]
+  questions        Question[]
+  answers          Answer[]
+  articles         Article[]
+  tickets          Ticket[]
+  ticketMessages   TicketMessage[]
+  adminAuditLogs   AdminAuditLog[]
+}
+
+model Address {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String    // e.g., Home, Work
+  city          String
+  province      String
+  postalCode    String
+  fullAddress   String
+  lat           Float?    // Latitude for map pin
+  lng           Float?    // Longitude for map pin
+  isDefault     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+}
+
+model Category {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  parentId      String?
+  parent        Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  subcategories Category[] @relation("CategoryHierarchy")
+  
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  introduction  String?
+  categoryId    String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  
+  basePrice     Float     // The base/display price of the product
+  discount      Float     @default(0) // Discount percentage or amount
+  images        String[]  // Array of image URLs
+  
+  variants      ProductVariant[]
+  reviews       Review[]
+  questions     Question[]
+  flashSale     FlashSale?
+  tickets       Ticket[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model ProductVariant {
+  id            String    @id @default(cuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  name          String?   // e.g., "Red - Large" or "Default" if no variants
+  sku           String    @unique
+  price         Float?    // If different from base price
+  
+  inventory     Inventory?
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+}
+
+model Inventory {
+  id                String    @id @default(cuid())
+  variantId         String    @unique
+  variant           ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  
+  stockQuantity     Int       @default(0) // Available for sale
+  reservedStock     Int       @default(0) // In users' carts currently
+  lowStockThreshold Int       @default(5)
+  
+  transactions      InventoryTransaction[]
+  
+  updatedAt         DateTime  @updatedAt
+}
+
+model InventoryTransaction {
+  id            String    @id @default(cuid())
+  inventoryId   String
+  inventory     Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  
+  type          TransactionType
+  quantity      Int       // Positive for RESTOCK/RETURN, Negative for SALE
+  reference     String?   // Order ID or reason for adjustment
+  
+  createdAt     DateTime  @default(now())
+}
+
+model Cart {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  items         CartItem[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CartItem {
+  id            String    @id @default(cuid())
+  cartId        String
+  cart          Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  
+  quantity      Int
+  reservedAt    DateTime? // Timestamp for the 15-min reservation release logic
+
+  @@index([cartId])
+  @@index([variantId])
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  
+  status        OrderStatus @default(PENDING)
+  totalAmount   Float
+  
+  // Shipping snapshot
+  shippingAddress String
+  trackingCode    String?
+  
+  items         OrderItem[]
+  tickets       Ticket[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String    @id @default(cuid())
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  
+  quantity      Int
+  unitPrice     Float     // Snapshot of price at the time of purchase
+}
+
+model Review {
+  id            String    @id @default(cuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  rating        Int       // 1 to 5
+  comment       String?
+  
+  isVerifiedBuyer      Boolean @default(false)
+  purchasedVariantName String?
+  
+  adminReply    String?
+  adminReplyAt  DateTime?
+  
+  votes         ReviewVote[]
+  
+  createdAt     DateTime  @default(now())
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  text      String
+  
+  answers   Answer[]
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  text       String
+  isAdmin    Boolean  @default(false)
+  
+  createdAt  DateTime @default(now())
+
+  @@index([questionId])
+  @@index([userId])
+}
+
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  isLike    Boolean  // true for like, false for dislike
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+}
+
+model FlashSale {
+  id              String   @id @default(cuid())
+  productId       String   @unique
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  discountPercent Int
+  startTime       DateTime
+  endTime         DateTime
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([endTime])
+}
+
+model ArticleCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  
+  articles    Article[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String
+  coverImage  String?
+  
+  status      ArticleStatus @default(DRAFT)
+  viewCount   Int       @default(0)
+  
+  categoryId  String
+  category    ArticleCategory @relation(fields: [categoryId], references: [id])
+  
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([status])
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketDepartment {
+  SALES
+  SUPPORT
+  TECHNICAL
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  subject     String
+  status      TicketStatus @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  department  TicketDepartment @default(SUPPORT)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  messages    TicketMessage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  text        String
+  attachments String[] @default([])
+  isInternal  Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  admin       User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  action      AdminActionType
+  entity      String   // e.g., 'Product', 'Order', 'Settings'
+  entityId    String?  // ID of the affected entity
+  description String   // Human readable description, e.g., "Updated product XYZ price to 50000"
+  
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+}
+

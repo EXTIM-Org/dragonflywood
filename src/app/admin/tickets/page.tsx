@@ -1,0 +1,40 @@
+import { db } from "@/prisma/db";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { canManageSupport } from "@/lib/permissions";
+import { TicketsList } from "./TicketsList";
+
+export const metadata = {
+  title: 'تیکت‌های پشتیبانی | ادمین',
+};
+
+export default async function AdminTicketsPage(props: { searchParams: Promise<{ q?: string }> }) {
+  const session = await getSession();
+  if (!session || !canManageSupport(session.role as string)) {
+    redirect("/admin");
+  }
+
+  const searchParams = await props.searchParams;
+  const q = searchParams.q || "";
+
+  const query= db.orm.public.Ticket
+    .orderBy((t: any) => t.updatedAt.desc())
+    .include("user", (u: any) => u.select("name", "email", "phoneNumber"));
+
+  const tickets = await query.all();
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تیکت‌های پشتیبانی</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+            مشاهده و پاسخ‌دهی به تیکت‌های کاربران
+          </p>
+        </div>
+      </div>
+
+      <TicketsList initialTickets={tickets} initialSearch={q} />
+    </div>
+  );
+}
