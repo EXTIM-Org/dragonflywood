@@ -16,7 +16,7 @@ export default async function ContactPage() {
     {
       icon: <MapPin className="w-6 h-6" />,
       title: "آدرس ما",
-      details: "تهران، خیابان ولیعصر، نرسیده به میدان ونک، برج نگار، طبقه ۱۵، واحد ۴",
+      details: "استان فارس، شهرستان شيراز، بخش مرکزي، شهر شيراز، کو ي فرهنگيان، کوچه ((پور جعفري))، کوچه ۱۴نبي اکرم، پلاک ۰، مجتمع نگارستان ۱، طبقه ۳، واحد ۱۲",
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-500/10",
       border: "border-blue-100 dark:border-blue-900/30"

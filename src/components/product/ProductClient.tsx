@@ -141,6 +141,7 @@ export function ProductClient({ product, initialIsLiked, activePromotions = [] }
           {product.images[selectedImage] ? (
             <Image
               src={product.images[selectedImage]}
+              unoptimized={product.images[selectedImage].startsWith('/uploads/')}
               alt={product.name}
               fill
               className="object-contain p-4 transition-transform duration-500 hover:scale-105"
@@ -170,7 +171,7 @@ export function ProductClient({ product, initialIsLiked, activePromotions = [] }
                   selectedImage === idx ? "border-purple-500 opacity-100" : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image src={img} alt={`تصویر ${idx + 1}`} fill className="object-cover" />
+                <Image src={img} alt={`تصویر ${idx + 1}`} unoptimized={img.startsWith('/uploads/')} fill className="object-cover" />
               </button>
             ))}
           </div>

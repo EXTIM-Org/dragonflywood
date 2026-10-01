@@ -7,7 +7,7 @@
     "dev": "concurrently \"next dev\" \"npm run worker\"",
     "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\" && npm run dev",
     "worker": "tsx watch src/worker-server.ts",
-    "build": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\" && next build",
+    "build": "bash scripts/build.sh",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma skills sync || exit 0",

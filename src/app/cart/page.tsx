@@ -199,7 +199,7 @@ export default function CartPage() {
                 {/* Item Image */}
                 <div className="relative w-full sm:w-32 aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-black/20 flex-shrink-0">
                   {item.image ? (
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    <Image src={item.image} alt={item.name} unoptimized={item.image.startsWith('/uploads/')} fill className="object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">بدون تصویر</div>
                   )}

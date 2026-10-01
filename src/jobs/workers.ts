@@ -2,13 +2,14 @@ import { Worker, Job } from 'bullmq';
 import { redis } from '../lib/redis';
 import { db } from '../prisma/db';
 import crypto from 'crypto';
-import { keyRotationQueue, ticketAutoCloseQueue, notificationQueue } from './queues';
+import { keyRotationQueue, ticketAutoCloseQueue, notificationQueue, shippingSyncQueue } from './queues';
 import { invalidateCachePattern } from '../lib/cache';
 import { sendEmail } from '../lib/email';
 import { sendSms } from '../lib/sms';
 import './bulk-import-worker';
 import { render } from '@react-email/render';
 import { AbandonedCartEmail } from '../emails/AbandonedCartEmail';
+import { syncTapinOrders } from '../lib/tapin';
 
 export function setupWorkers() {
   console.log('[BullMQ] Setting up background workers...');
@@ -197,6 +198,19 @@ export function setupWorkers() {
 
   ticketAutoCloseWorker.on('failed', (job, err) => console.error(`TicketAutoClose Job ${job?.id} failed:`, err));
 
+  // Tapin Shipping Background Sync Worker
+  const shippingSyncWorker = new Worker('shipping-sync-queue', async (_job: Job) => {
+    console.log('[BullMQ] Running automated Tapin shipping sync...');
+    try {
+      const res = await syncTapinOrders();
+      console.log(`[BullMQ] Tapin sync completed: matched=${res.matchedCount}, updated=${res.updatedCount}`);
+    } catch (err) {
+      console.error('[BullMQ] Tapin sync error:', err);
+    }
+  }, { connection: redis });
+
+  shippingSyncWorker.on('failed', (job, err) => console.error(`ShippingSync Job ${job?.id} failed:`, err));
+
   // Schedule monthly key rotation (Runs at 00:00 on day-of-month 1)
   keyRotationQueue.upsertJobScheduler('monthly-rotation', {
     pattern: '0 0 1 * *',
@@ -213,5 +227,16 @@ export function setupWorkers() {
     data: {},
   });
 
-  return { cartWorker, flashSaleWorker, keyRotationWorker, notificationWorker, abandonedCartWorker, ticketAutoCloseWorker };
+  // Schedule Tapin shipping sync every 15 minutes
+  shippingSyncQueue.upsertJobScheduler('tapin-shipping-sync-schedule', {
+    pattern: '*/15 * * * *',
+  }, {
+    name: 'auto-sync-tapin-orders',
+    data: {},
+  });
+
+  // Run initial sync on worker startup
+  shippingSyncQueue.add('initial-tapin-sync', {}, { jobId: 'initial-tapin-sync-startup' }).catch(() => {});
+
+  return { cartWorker, flashSaleWorker, keyRotationWorker, notificationWorker, abandonedCartWorker, ticketAutoCloseWorker, shippingSyncWorker };
 }

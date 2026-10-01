@@ -43,6 +43,7 @@ export function ProductCard({ product, initialIsLiked = false }: ProductCardProp
           {product.images[0] ? (
             <Image
               src={product.images[0]}
+              unoptimized={product.images[0].startsWith('/uploads/')}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"

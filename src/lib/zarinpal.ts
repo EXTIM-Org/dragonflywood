@@ -7,8 +7,7 @@ const BASE_URL = isSandbox
   ? "https://sandbox.zarinpal.com/pg"
   : "https://payment.zarinpal.com/pg";
 
-const MERCHANT_ID =
-  process.env.ZARINPAL_MERCHANT_ID || "1c57c4f9-d4a1-42b2-b830-c24daaa89850";
+const MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID || "";
 
 /**
  * Maps Zarinpal error code to Persian descriptive message
@@ -79,6 +78,14 @@ export interface ZarinpalVerifyResult {
 export async function requestZarinpalPayment(
   params: ZarinpalRequestParams
 ): Promise<ZarinpalRequestResult> {
+  if (!MERCHANT_ID) {
+    log.error("ZARINPAL_MERCHANT_ID is missing in environment variables");
+    return {
+      success: false,
+      error: "کد پذیرنده درگاه پرداخت زرین‌پال (ZARINPAL_MERCHANT_ID) در تنظیمات سرور (.env) تعریف نشده است.",
+    };
+  }
+
   try {
     const endpoint = `${BASE_URL}/v4/payment/request.json`;
 
@@ -152,6 +159,14 @@ export async function requestZarinpalPayment(
 export async function verifyZarinpalPayment(
   params: ZarinpalVerifyParams
 ): Promise<ZarinpalVerifyResult> {
+  if (!MERCHANT_ID) {
+    log.error("ZARINPAL_MERCHANT_ID is missing in environment variables");
+    return {
+      success: false,
+      error: "کد پذیرنده درگاه پرداخت زرین‌پال (ZARINPAL_MERCHANT_ID) در تنظیمات سرور (.env) تعریف نشده است.",
+    };
+  }
+
   try {
     const endpoint = `${BASE_URL}/v4/payment/verify.json`;
 

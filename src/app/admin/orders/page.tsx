@@ -5,6 +5,7 @@ import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import Link from "next/link";
 import { AdminOrdersFilter } from "@/components/admin/AdminOrdersFilter";
 import { Pagination } from "@/components/ui/Pagination";
+import { TapinSyncButton } from "@/components/admin/TapinSyncButton";
 
 export default async function AdminOrdersPage(props: { searchParams: Promise<{ user?: string, q?: string, status?: string, page?: string }> }) {
   const searchParams = await props.searchParams;
@@ -53,11 +54,12 @@ export default async function AdminOrdersPage(props: { searchParams: Promise<{ u
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-6 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-6 backdrop-blur-md">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">مدیریت سفارشات</h1>
           <p className="text-gray-500 text-sm mt-1">تعداد کل سفارشات ثبت شده: {totalCount}</p>
         </div>
+        <TapinSyncButton />
       </div>
       
       <AdminOrdersFilter />

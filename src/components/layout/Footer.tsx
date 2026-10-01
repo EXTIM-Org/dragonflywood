@@ -111,7 +111,7 @@ export function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <MapPin className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">تهران، خیابان ولیعصر، بالاتر از میدان ونک، مجتمع تجاری اطلس، طبقه ۵، واحد ۵۰۲</span>
+                <span className="leading-relaxed">استان فارس، شهرستان شيراز، بخش مرکزي، شهر شيراز، کو ي فرهنگيان، کوچه ((پور جعفري))، کوچه ۱۴نبي اکرم، پلاک ۰، مجتمع نگارستان ۱، طبقه ۳، واحد ۱۲</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <Phone className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0" />

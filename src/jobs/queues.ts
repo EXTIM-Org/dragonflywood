@@ -11,6 +11,7 @@ const globalForQueues = global as unknown as {
     bulkImport?: Queue;
     ticketAutoClose?: Queue;
     abandonedCart?: Queue;
+    shippingSync?: Queue;
   }
 };
 
@@ -65,6 +66,12 @@ export const abandonedCartQueue = globalForQueues.queues.abandonedCart || new Qu
   defaultJobOptions: { removeOnComplete: true, removeOnFail: 10 },
 });
 
+// Setup Tapin Shipping Sync Queue
+export const shippingSyncQueue = globalForQueues.queues.shippingSync || new Queue('shipping-sync-queue', {
+  connection: redis,
+  defaultJobOptions: { removeOnComplete: true, removeOnFail: 5 },
+});
+
 if (process.env.NODE_ENV !== 'production') {
   globalForQueues.queues.cartCleanup = cartCleanupQueue;
   globalForQueues.queues.flashSale = flashSaleQueue;
@@ -73,4 +80,5 @@ if (process.env.NODE_ENV !== 'production') {
   globalForQueues.queues.bulkImport = bulkImportQueue;
   globalForQueues.queues.ticketAutoClose = ticketAutoCloseQueue;
   globalForQueues.queues.abandonedCart = abandonedCartQueue;
+  globalForQueues.queues.shippingSync = shippingSyncQueue;
 }

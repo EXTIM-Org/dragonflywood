@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, Home, Package, Truck, XCircle, Copy, Check } from "lucide-react";
+import { CheckCircle2, Clock, Home, Package, Truck, XCircle, Copy, Check, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 type OrderStatus = "PENDING" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "RETURNED";
@@ -74,6 +74,15 @@ export function OrderTimeline({
                 {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
+            <a
+              href={`https://tracking.post.ir/?id=${trackingCode}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-violet-600 dark:text-violet-400 hover:underline mt-1.5 inline-flex items-center gap-1 font-medium"
+            >
+              سامانه رهگیری شرکت ملی پست
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         )}
       </div>

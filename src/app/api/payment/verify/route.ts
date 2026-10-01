@@ -14,9 +14,8 @@ export async function GET(req: NextRequest) {
 
   log.info({ orderId, authority, status }, "Payment callback received from Zarinpal");
 
-  const redirectUrl = req.nextUrl.clone();
-  redirectUrl.pathname = "/checkout/result";
-  redirectUrl.search = "";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dragonflywood.ir";
+  const redirectUrl = new URL("/checkout/result", baseUrl);
 
   if (!orderId) {
     redirectUrl.searchParams.set("status", "failed");
