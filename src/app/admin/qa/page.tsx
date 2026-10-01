@@ -5,7 +5,7 @@ import { QAList } from "@/components/admin/QAList";
 import { canManageStore } from "@/lib/permissions";
 
 export const metadata = {
-  title: "مدیریت پرسش و پاسخ | پنل ادمین EXTIM",
+  title: "مدیریت پرسش و پاسخ | پنل ادمین گالری چوب سنجاقک",
 };
 
 export default async function AdminQAPage() {

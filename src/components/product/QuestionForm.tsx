@@ -16,7 +16,7 @@ export function QuestionForm({ productId, isLoggedIn }: { productId: string, isL
         <HelpCircle className="w-12 h-12 text-gray-400 dark:text-gray-500/50 mb-2" />
         <h3 className="text-xl font-bold text-gray-900 dark:text-white">پرسش درباره این محصول</h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">برای ثبت پرسش، لطفاً ابتدا وارد حساب کاربری شوید.</p>
-        <Link href={`/login?callbackUrl=/products/${productId}`} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-lg dark:hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+        <Link href={`/login?callbackUrl=/products/${productId}`} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md dark:shadow-[0_0_20px_rgba(81,109,62,0.3)] hover:shadow-lg dark:hover:shadow-[0_0_30px_rgba(81,109,62,0.5)]">
           ورود به حساب کاربری
         </Link>
       </div>

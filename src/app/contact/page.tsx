@@ -5,7 +5,7 @@ import { MessageSquare, ArrowLeft } from "lucide-react";
 
 export const metadata = {
   title: 'تماس با ما',
-  description: 'راه‌های ارتباطی و فرم تماس با فروشگاه اکستیم',
+  description: 'راه‌های ارتباطی و فرم تماس با گالری چوب سنجاقک',
 };
 
 export default async function ContactPage() {
@@ -23,8 +23,8 @@ export default async function ContactPage() {
     },
     {
       icon: <Phone className="w-6 h-6" />,
-      title: "تماس تلفنی",
-      details: "۰۲۱-۸۸۸۸۸۸۸۸ \n ۰۲۱-۸۸۸۸۸۸۸۹",
+      title: "تماس تلفنی و پشتیبانی",
+      details: "۰۹۲۱۷۲۰۴۷۰۷",
       color: "text-emerald-600 dark:text-emerald-400",
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       border: "border-emerald-100 dark:border-emerald-900/30"
@@ -32,7 +32,7 @@ export default async function ContactPage() {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "پست الکترونیک",
-      details: "support@extim.com \n info@extim.com",
+      details: "support@dragonflywood.ir \n info@dragonflywood.ir",
       color: "text-rose-600 dark:text-rose-400",
       bg: "bg-rose-50 dark:bg-rose-500/10",
       border: "border-rose-100 dark:border-rose-900/30"
@@ -60,8 +60,8 @@ export default async function ContactPage() {
             </span>
             <span className="text-sm font-bold text-teal-600 dark:text-teal-400">پشتیبانی آنلاین و تلفنی</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-l from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400 mb-6">
-            تماس با اکستیم
+          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-l from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 mb-6">
+            تماس با گالری چوب سنجاقک
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
             مشتاقانه منتظر شنیدن صدای شما هستیم! سوالات، پیشنهادات و انتقادات خود را از طریق فرم زیر یا راه‌های ارتباطی با ما در میان بگذارید.

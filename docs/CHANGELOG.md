@@ -3,6 +3,20 @@
 ## [Unreleased]
 
 ### Added
+- **Brand Rebranding to "گالری چوب سنجاقک" (Dragonfly Wood)**:
+  - Rebranded the platform across all public pages, metadata, header, footer, authentication screens, transactional emails, and admin sections to "گالری چوب سنجاقک".
+  - Configured official contact channels: phone `09217204707` (`۰۹۲۱۷۲۰۴۷۰۷`), Telegram direct chat (`https://t.me/+989217204707`), Instagram (`@dragonfly.wood`), and email domain (`@dragonflywood.ir`).
+- **Warm Olive & Teak Theme**:
+  - Replaced tech neon violet/fuchsia colors with an organic olive green (`#516d3e` / `#6b8956`) and warm teak/amber wood palette across light and dark modes in `globals.css` using Tailwind CSS v4 design tokens.
+- **Interactive FAQ Page (`/faq`)**:
+  - Created a new FAQ page featuring 10 brand-specific questions and answers covering handcrafting authenticity, wood types, grain uniqueness, custom vs. ready-made lead times, moisture care, and pre-purchase consultation.
+  - Implemented client-side live search, category filtering tabs, smooth accordion expansion, Schema.org JSON-LD FAQPage, and direct contact buttons.
+- **Comprehensive Policy Pages Overhaul**:
+  - **About Us (`/about`)**: Rebuilt with the complete brand story, from humble beginnings to a specialized workshop with 10-15 year veteran woodworkers, the dragonfly philosophy, and the 5-step buying guide.
+  - **Returns Policy (`/returns`)**: Updated with distinct rules for bespoke/custom creations (non-returnable once in production) vs. ready-made items (3-day return window), and guaranteed full cover/replacement for shipping damages.
+  - **Privacy Policy (`/privacy`)**: Overhauled with clear guidelines on national ID handling for logistics, customer data privacy, opt-in notifications, and confidentiality guarantees.
+- **Docker Infrastructure Alignment**:
+  - Renamed container and compose stack to `dragonflywood-postgres` and `dragonflywood-redis` while mapping to existing persistent volumes.
 - **Production-Ready Security Hardening**: 
   - **DoS Protection**: Restricted global Next.js Server Action `bodySizeLimit` to `10mb` to prevent payload-based Denial of Service attacks.
   - **Secure Bulk Import API**: Migrated the ZIP file upload from a Server Action to a dedicated Next.js API Route (`/api/admin/bulk-import`) to safely bypass global body size limits for admins without exposing the entire app.

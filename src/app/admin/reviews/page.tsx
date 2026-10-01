@@ -7,7 +7,7 @@ import { or } from "@prisma/orm-postgres/orm-client";
 import { canManageStore } from "@/lib/permissions";
 
 export const metadata = {
-  title: "مدیریت نظرات | پنل ادمین EXTIM",
+  title: "مدیریت نظرات | پنل ادمین گالری چوب سنجاقک",
 };
 
 export default async function AdminReviewsPage(props: {

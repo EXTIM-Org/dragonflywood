@@ -70,7 +70,7 @@ export async function createTicket(formData: FormData) {
           type: "sms",
           payload: {
             to: user.phoneNumber,
-            text: `اکستیم\nتیکت جدید شما با موضوع "${subject}" ثبت شد و به زودی پاسخ داده خواهد شد.`,
+            text: `گالری چوب سنجاقک\nتیکت جدید شما با موضوع "${subject}" ثبت شد و به زودی پاسخ داده خواهد شد.`,
           }
         });
       }
@@ -159,7 +159,7 @@ export async function addTicketMessage(ticketId: string, formData: FormData) {
               type: "sms",
               payload: {
                 to: user.phoneNumber,
-                text: `اکستیم\nپاسخ جدیدی برای تیکت "${ticket.subject}" ثبت شد.\nجهت مشاهده به پروفایل خود مراجعه کنید.`,
+                text: `گالری چوب سنجاقک\nپاسخ جدیدی برای تیکت "${ticket.subject}" ثبت شد.\nجهت مشاهده به پروفایل خود مراجعه کنید.`,
               }
             });
           }

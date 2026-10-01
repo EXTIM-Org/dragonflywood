@@ -34,32 +34,32 @@ export default async function Home() {
       <div className="container mx-auto px-4 text-center z-10 flex flex-col items-center gap-6 sm:gap-8 py-12 sm:py-20">
         
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 text-sm font-medium border border-violet-500/20 shadow-sm backdrop-blur-sm">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 text-violet-700 dark:text-violet-300 text-sm font-medium border border-violet-500/20 shadow-sm backdrop-blur-sm">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
           </span>
-          پلتفرم هوشمند فروشگاهی
+          صنایع چوبی و دست‌سازه‌های هنری
         </div>
 
         {/* Title */}
         <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[1.2]">
-          نسل جدید <br className="hidden sm:block" />
+          شکوه طبیعت <br className="hidden sm:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 dark:from-violet-400 dark:via-fuchsia-400 dark:to-pink-400">
-            تجارت الکترونیک
+            در هنر چوب
           </span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg sm:text-xl md:text-2xl text-foreground/70 max-w-2xl mx-auto leading-relaxed">
-          محصولات پرمیوم، پیشنهادهای هوشمند اختصاصی شما و تجربه‌ای بی‌نظیر از یک خرید فوق‌سریع. به دنیای **EXTIM** خوش آمدید.
+        <p className="text-lg sm:text-xl md:text-2xl text-foreground/75 max-w-2xl mx-auto leading-relaxed">
+          خلق دست‌سازه‌های فاخر، دکوراسیون و ظروف نفیس با اصالت چوب طبیعی. به دنیای **گالری چوب سنجاقک** خوش آمدید.
         </p>
 
         {/* Call to Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-4 mt-8 w-full sm:w-auto">
           <Link 
             href="/products" 
-            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-violet-600 hover:bg-violet-700 text-white font-medium transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:shadow-[0_0_35px_rgba(139,92,246,0.6)] hover:scale-105"
+            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-violet-600 hover:bg-violet-700 text-white font-medium transition-all shadow-[0_0_25px_rgba(81,109,62,0.35)] hover:shadow-[0_0_35px_rgba(81,109,62,0.55)] hover:scale-105"
           >
             <span>مشاهده محصولات</span>
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

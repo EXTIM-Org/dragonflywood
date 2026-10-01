@@ -107,7 +107,7 @@ export function OrderTimeline({
                 <div 
                   className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-4 transition-all duration-500 relative z-10 bg-white dark:bg-[#121212] ${
                     isCompleted 
-                      ? "border-violet-500 text-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]" 
+                      ? "border-violet-500 text-violet-500 shadow-[0_0_15px_rgba(81,109,62,0.35)]" 
                       : "border-black/10 dark:border-white/10 text-gray-400 dark:text-gray-600"
                   }`}
                 >

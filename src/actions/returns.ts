@@ -89,12 +89,12 @@ export async function createReturnRequest(prevState: any, formData: FormData) {
       if (canSendEmail && orderItem.order.user.email) {
         import("@/lib/email").then(({ sendEmail }) => sendEmail({ 
           to: orderItem.order!.user.email!, 
-          subject: `فروشگاه اکستیم - ${subject}`, 
+          subject: `گالری چوب سنجاقک - ${subject}`, 
           html: `<div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">
                   <h2>${subject}</h2>
                   <p>${message}</p>
                   <hr style="border-top: 1px solid #eee; margin: 20px 0;" />
-                  <p style="font-size: 12px; color: #777;">فروشگاه اینترنتی اکستیم</p>
+                  <p style="font-size: 12px; color: #777;">گالری چوب سنجاقک</p>
                  </div>` 
         })).catch(console.error);
       }
@@ -304,12 +304,12 @@ export async function updateReturnRequestStatus(requestId: string, status: "PEND
       if (canSendEmail && request.user.email) {
         sendEmail({ 
           to: request.user.email, 
-          subject: `فروشگاه اکستیم - ${subject}`, 
+          subject: `گالری چوب سنجاقک - ${subject}`, 
           html: `<div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">
                   <h2>${subject}</h2>
                   <p>${message}</p>
                   <hr style="border-top: 1px solid #eee; margin: 20px 0;" />
-                  <p style="font-size: 12px; color: #777;">فروشگاه اینترنتی اکستیم</p>
+                  <p style="font-size: 12px; color: #777;">گالری چوب سنجاقک</p>
                  </div>` 
         }).catch(console.error);
       }

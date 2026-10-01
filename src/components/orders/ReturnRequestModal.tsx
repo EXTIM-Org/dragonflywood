@@ -246,7 +246,7 @@ export function ReturnRequestModal({
             <button 
               type="submit"
               disabled={loading || !reason}
-              className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)]"
+              className="w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(81,109,62,0.3)] hover:shadow-[0_0_25px_rgba(81,109,62,0.5)]"
             >
               {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "ثبت درخواست مرجوعی"}
             </button>

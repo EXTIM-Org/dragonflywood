@@ -749,7 +749,7 @@ export function ProductForm({
         <button
           type="submit"
           disabled={isPending}
-          className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] flex items-center gap-2"
+          className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(81,109,62,0.3)] hover:shadow-[0_0_25px_rgba(81,109,62,0.5)] flex items-center gap-2"
         >
           {isPending ? (
             <>

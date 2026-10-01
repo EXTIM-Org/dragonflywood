@@ -39,13 +39,13 @@ export const AbandonedCartEmail = ({
   return (
     <Html dir="rtl">
       <Head />
-      <Preview>سبد خرید شما در اکستیم منتظر شماست!</Preview>
+      <Preview>سبد خرید شما در گالری چوب سنجاقک منتظر شماست!</Preview>
       <Tailwind>
         <Body className="bg-gray-50 font-sans">
           <Container className="bg-white border border-gray-200 rounded-xl my-10 mx-auto p-8 max-w-xl shadow-sm">
             <Section className="text-center mb-6">
               <Heading className="text-2xl font-black text-amber-500 m-0 tracking-tight">
-                فروشگاه اکستیم
+                گالری چوب سنجاقک
               </Heading>
             </Section>
             
@@ -121,9 +121,9 @@ export const AbandonedCartEmail = ({
             <Hr className="border-gray-200 my-6" />
             
             <Text className="text-gray-400 text-xs leading-5 text-center">
-              شما این ایمیل را به این دلیل دریافت کرده‌اید که محصولاتی را در سبد خرید خود در فروشگاه اکستیم رها کرده‌اید.
+              شما این ایمیل را به این دلیل دریافت کرده‌اید که محصولاتی را در سبد خرید خود در گالری چوب سنجاقک رها کرده‌اید.
               <br />
-              تیم پشتیبانی اکستیم
+              تیم پشتیبانی گالری چوب سنجاقک
             </Text>
           </Container>
         </Body>

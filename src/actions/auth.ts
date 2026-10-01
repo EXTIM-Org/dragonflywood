@@ -254,7 +254,7 @@ export async function sendOtp(prevState: unknown, formData: FormData) {
         type: "sms",
         payload: {
           to: phoneNumber,
-          text: `کد تایید شما در اکستیم: ${otpCode}\nاین کد تا ۲ دقیقه معتبر است.`,
+          text: `کد تایید شما در گالری چوب سنجاقک: ${otpCode}\nاین کد تا ۲ دقیقه معتبر است.`,
         }
       });
     }

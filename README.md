@@ -7,7 +7,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-336791?logo=postgresql)
 ![Redis](https://img.shields.io/badge/Redis-BullMQ-DC382D?logo=redis)
 
-**EXTIM** is a monolithic e-commerce platform built for the Iranian market. It uses the **Next.js App Router** and **React Server Components (RSC)** to render a Persian, RTL storefront with search, catalog, and SEO features.
+**گالری چوب سنجاقک (Dragonfly Wood)** is an artisanal woodworking and modern e-commerce platform tailored for handcrafted wood products, accessories, and bespoke creations. It uses the **Next.js App Router** and **React Server Components (RSC)** with a warm, organic olive and teak theme to deliver an immersive Persian, RTL storefront with rich catalog, search, and SEO features.
 
 ---
 

@@ -12,7 +12,7 @@ function SubmitButton({ label }: { label: string }) {
     <button 
       type="submit" 
       aria-disabled={pending}
-      className={`w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all ${pending ? 'opacity-70 cursor-not-allowed pointer-events-none' : ''}`}
+      className={`w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(81,109,62,0.35)] transition-all ${pending ? 'opacity-70 cursor-not-allowed pointer-events-none' : ''}`}
       onClick={(e) => { if (pending) e.preventDefault(); }}
     >
       {pending ? "لطفا صبر کنید..." : label}
@@ -184,7 +184,7 @@ export default function LoginPage() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(81,109,62,0.35)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? "در حال بررسی..." : "ادامه"}
               </button>

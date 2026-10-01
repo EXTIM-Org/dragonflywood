@@ -2,19 +2,19 @@ import { ShieldCheck, Scale, CreditCard, Truck, RefreshCcw } from "lucide-react"
 
 export const metadata = {
   title: 'شرایط و قوانین',
-  description: 'شرایط و قوانین استفاده از فروشگاه اکستیم',
+  description: 'شرایط و قوانین استفاده از گالری چوب سنجاقک',
 };
 
 const terms = [
   {
     icon: <Scale className="w-6 h-6 text-violet-600 dark:text-violet-400" />,
     title: "قوانین عمومی",
-    content: "تمامی اصول و رویه‌های سایت اکستیم منطبق با قوانین جمهوری اسلامی ایران، قانون تجارت الکترونیک و قانون حمایت از حقوق مصرف‌کننده است. ورود کاربران به وب‌سایت و استفاده از خدمات به معنای آگاه بودن و پذیرفتن این شرایط است."
+    content: "تمامی اصول و رویه‌های گالری چوب سنجاقک منطبق با قوانین جمهوری اسلامی ایران، قانون تجارت الکترونیک و قانون حمایت از حقوق مصرف‌کننده است. ورود کاربران به وب‌سایت و استفاده از خدمات به معنای آگاه بودن و پذیرفتن این شرایط است."
   },
   {
     icon: <ShieldCheck className="w-6 h-6 text-violet-600 dark:text-violet-400" />,
     title: "حریم خصوصی و امنیت",
-    content: "اکستیم به اطلاعات خصوصی اشخاصی که از خدمات سایت استفاده می‌کنند احترام گذاشته و از آن محافظت می‌کند. ما متعهد می‌شویم که اطلاعات شما را در اختیار شخص ثالثی قرار ندهیم و از پیشرفته‌ترین پروتکل‌های امنیتی برای حفظ داده‌های شما استفاده کنیم."
+    content: "گالری چوب سنجاقک به اطلاعات خصوصی اشخاصی که از خدمات سایت استفاده می‌کنند احترام گذاشته و از آن محافظت می‌کند. ما متعهد می‌شویم که اطلاعات شما را در اختیار شخص ثالثی قرار ندهیم و از پیشرفته‌ترین پروتکل‌های امنیتی برای حفظ داده‌های شما استفاده کنیم."
   },
   {
     icon: <CreditCard className="w-6 h-6 text-violet-600 dark:text-violet-400" />,
@@ -29,7 +29,7 @@ const terms = [
   {
     icon: <RefreshCcw className="w-6 h-6 text-violet-600 dark:text-violet-400" />,
     title: "شرایط مرجوعی و گارانتی",
-    content: "مشتریان عزیز می‌توانند در صورت وجود نقص فنی در کالا یا مغایرت با مشخصات درج شده، تا ۷ روز کاری پس از دریافت، کالا را جهت تعویض یا مرجوعی به پشتیبانی اطلاع دهند. توجه داشته باشید که کالاهای مصرفی، نرم‌افزارها و محصولات بهداشتی در صورت باز شدن پلمپ به هیچ وجه قابل مرجوع نیستند."
+    content: "محصولات غیرسفارشی تا ۳ روز پس از تحویل در صورت سلامت کامل قابل مرجوع هستند. محصولات سفارشی به دلیل ساخت اختصاصی امکان مرجوعی ندارند. در صورت هرگونه آسیب‌دیدگی حین ارسال یا مغایرت، پیگیری خسارت و تعویض یا عودت کامل وجه توسط گالری سنجاقک تضمین می‌شود."
   }
 ];
 
@@ -48,7 +48,7 @@ export default function TermsPage() {
             شرایط و قوانین استفاده
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            لطفاً پیش از استفاده از خدمات سایت اکستیم، موارد زیر را به دقت مطالعه فرمایید. عضویت و خرید از سایت به منزله پذیرش کامل این قوانین است.
+            لطفاً پیش از استفاده از خدمات گالری چوب سنجاقک، موارد زیر را به دقت مطالعه فرمایید. عضویت و خرید از سایت به منزله پذیرش کامل این قوانین است.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
             <div key={index} className="relative flex items-start md:justify-between group">
               
               {/* Timeline dot */}
-              <div className="absolute left-5 md:left-1/2 md:-translate-x-1/2 w-4 h-4 rounded-full bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.5)] border-4 border-background z-10 mt-6 group-hover:scale-125 group-hover:bg-fuchsia-500 transition-all duration-300"></div>
+              <div className="absolute left-5 md:left-1/2 md:-translate-x-1/2 w-4 h-4 rounded-full bg-violet-500 shadow-[0_0_15px_rgba(81,109,62,0.5)] border-4 border-background z-10 mt-6 group-hover:scale-125 group-hover:bg-fuchsia-500 transition-all duration-300"></div>
 
               {/* Card - alternating sides on desktop */}
               <div className={`w-full md:w-[calc(50%-2rem)] ps-12 md:ps-0 ${index % 2 === 0 ? 'md:pe-12 md:text-left rtl:md:text-right' : 'md:ms-auto md:ps-12'}`}>

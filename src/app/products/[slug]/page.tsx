@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps) {
   }
   
   return {
-    title: `${product.name} | فروشگاه EXTIM`,
+    title: `${product.name} | گالری چوب سنجاقک`,
     description: product.description,
   };
 }
@@ -146,7 +146,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         'position': 1,
-        'name': 'فروشگاه EXTIM',
+        'name': 'گالری چوب سنجاقک',
         'item': 'https://extim.com/'
       },
       {
@@ -174,7 +174,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     'sku': (product.variants && product.variants.length > 0) ? product.variants[0].sku : product.id,
     'brand': {
       '@type': 'Brand',
-      'name': 'EXTIM'
+      'name': 'گالری چوب سنجاقک'
     },
     'offers': {
       '@type': 'Offer',

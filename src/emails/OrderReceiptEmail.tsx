@@ -56,7 +56,7 @@ export const OrderReceiptEmail = ({
           <Container className="bg-white border border-gray-200 rounded-lg my-10 mx-auto p-8 max-w-xl shadow-sm">
             <Section className="text-center mb-8">
               <Heading className="text-2xl font-bold text-violet-600 m-0">
-                فروشگاه اکستیم
+                گالری چوب سنجاقک
               </Heading>
             </Section>
             

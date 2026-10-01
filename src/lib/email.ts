@@ -40,7 +40,7 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
     });
 
     const info = await transporter.sendMail({
-      from: SMTP_FROM || "Extim Store <noreply@yourdomain.com>",
+      from: SMTP_FROM || "گالری چوب سنجاقک <noreply@yourdomain.com>",
       to,
       subject,
       html,

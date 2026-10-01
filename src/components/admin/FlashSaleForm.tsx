@@ -187,7 +187,7 @@ export function FlashSaleForm({ products }: FlashSaleFormProps) {
 
       <button 
         type="submit"
-        className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-6 py-4 rounded-xl font-bold shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all"
+        className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-6 py-4 rounded-xl font-bold shadow-[0_0_20px_rgba(81,109,62,0.3)] hover:shadow-[0_0_30px_rgba(81,109,62,0.5)] transition-all"
       >
         <Save className="w-5 h-5" />
         ثبت کمپین فروش ویژه

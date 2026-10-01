@@ -11,10 +11,10 @@ export default async function BlogPage() {
     <div className="container mx-auto px-4 py-12 max-w-7xl">
       <div className="text-center max-w-2xl mx-auto mb-16">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">
-          وبلاگ <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">EXTIM</span>
+          وبلاگ <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400">گالری چوب سنجاقک</span>
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">
-          جدیدترین مقالات، راهنمای خرید و اخبار تکنولوژی را اینجا بخوانید.
+          جدیدترین مقالات، راهنمای نگهداری چوب و ایده‌های دکوراسیون چوبی را اینجا بخوانید.
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export default async function BlogPage() {
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1.5">
                       <User className="w-4 h-4" />
-                      {article.author?.name || "EXTIM"}
+                      {article.author?.name || "گالری چوب سنجاقک"}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4" />

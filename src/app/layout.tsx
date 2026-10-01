@@ -11,21 +11,21 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
-    template: "%s | فروشگاه اکستیم",
-    default: "فروشگاه اینترنتی اکستیم",
+    template: "%s | گالری چوب سنجاقک",
+    default: "گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر",
   },
-  description: "تجربه خریدی متفاوت با پلتفرم سریع و مدرن اکستیم",
+  description: "خرید آنلاین انواع ظروف، دکوراسیون و دست‌سازه‌های چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک",
   openGraph: {
-    title: "فروشگاه اینترنتی اکستیم",
-    description: "تجربه خریدی متفاوت با پلتفرم سریع و مدرن اکستیم",
+    title: "گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر",
+    description: "خرید آنلاین انواع ظروف، دکوراسیون و دست‌سازه‌های چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک",
     url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    siteName: "Extim Store",
+    siteName: "گالری چوب سنجاقک",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Dragonfly Wood Platform",
+        alt: "گالری چوب سنجاقک",
       },
     ],
     locale: "fa_IR",
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "فروشگاه اینترنتی اکستیم",
-    description: "تجربه خریدی متفاوت با پلتفرم سریع و مدرن اکستیم",
+    title: "گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر",
+    description: "خرید آنلاین انواع ظروف، دکوراسیون و دست‌سازه‌های چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک",
     images: ["/og-image.jpg"],
   },
 };

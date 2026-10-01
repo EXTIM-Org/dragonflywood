@@ -117,7 +117,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
             type: "sms",
             payload: {
               to: order.user.phoneNumber,
-              text: `اکستیم\nسفارش #${order.id.split('-')[0]} شما به وضعیت ${persianStatus} تغییر یافت.`,
+              text: `گالری چوب سنجاقک\nسفارش #${order.id.split('-')[0]} شما به وضعیت ${persianStatus} تغییر یافت.`,
             }
           });
         }

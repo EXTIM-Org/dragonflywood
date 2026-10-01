@@ -31,7 +31,7 @@ export const ResetPasswordEmail = ({
           <Container className="bg-white border border-gray-200 rounded-lg my-10 mx-auto p-10 max-w-lg shadow-sm">
             <Section className="text-center mb-8">
               <Heading className="text-2xl font-bold text-violet-600 m-0">
-                فروشگاه اکستیم
+                گالری چوب سنجاقک
               </Heading>
             </Section>
             
@@ -67,7 +67,7 @@ export const ResetPasswordEmail = ({
             <Text className="text-gray-500 text-sm leading-5 text-center mt-8">
               اگر شما این درخواست را نداده‌اید، می‌توانید این ایمیل را نادیده بگیرید. رمز عبور شما تغییر نخواهد کرد.
               <br />
-              تیم پشتیبانی اکستیم
+              تیم پشتیبانی گالری چوب سنجاقک
             </Text>
           </Container>
         </Body>

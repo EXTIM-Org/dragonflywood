@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!article) return { title: "مقاله یافت نشد" };
   
   return {
-    title: `${article.title} | مجله EXTIM`,
+    title: `${article.title} | مجله گالری چوب سنجاقک`,
     description: article.excerpt || article.title,
     openGraph: {
       images: article.coverImage ? [article.coverImage] : [],
@@ -47,7 +47,7 @@ export default async function SingleArticlePage({ params }: { params: Promise<{ 
     'dateModified': article.updatedAt ? new Date(article.updatedAt).toISOString() : undefined,
     'author': [{
       '@type': 'Person',
-      'name': article.author?.name || 'EXTIM',
+      'name': article.author?.name || 'گالری چوب سنجاقک',
       'url': 'https://extim.com/about'
     }]
   };
@@ -90,7 +90,7 @@ export default async function SingleArticlePage({ params }: { params: Promise<{ 
                   )}
                 </div>
               </div>
-              <span className="font-medium">{article.author?.name || "تیم تولید محتوا EXTIM"}</span>
+              <span className="font-medium">{article.author?.name || "تیم تحریریه گالری چوب سنجاقک"}</span>
             </div>
             
             <span className="flex items-center gap-2">

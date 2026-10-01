@@ -12,7 +12,7 @@ function SubmitButton() {
     <button 
       type="submit" 
       disabled={pending}
-      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(81,109,62,0.35)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
     >
       {pending ? "در حال ارسال..." : "ارسال لینک بازیابی"}
     </button>

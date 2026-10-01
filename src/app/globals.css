@@ -12,17 +12,84 @@
 
 @theme {
   --font-vazirmatn-fd: "Vazirmatn FD", system-ui, sans-serif;
+
+  /* Olive Palette (replaces default violet/purple for seamless project-wide theme) */
+  --color-violet-50: #f4f6f1;
+  --color-violet-100: #e6ecde;
+  --color-violet-200: #cfdac3;
+  --color-violet-300: #b0c3a1;
+  --color-violet-400: #8ea77a;
+  --color-violet-500: #6b8956;
+  --color-violet-600: #516d3e;
+  --color-violet-700: #3f5530;
+  --color-violet-800: #344429;
+  --color-violet-900: #2c3923;
+  --color-violet-950: #141c10;
+
+  --color-purple-50: #f4f6f1;
+  --color-purple-100: #e6ecde;
+  --color-purple-200: #cfdac3;
+  --color-purple-300: #b0c3a1;
+  --color-purple-400: #8ea77a;
+  --color-purple-500: #6b8956;
+  --color-purple-600: #516d3e;
+  --color-purple-700: #3f5530;
+  --color-purple-800: #344429;
+  --color-purple-900: #2c3923;
+  --color-purple-950: #141c10;
+
+  /* Warm Wood & Golden Teak (replaces default fuchsia/pink accents) */
+  --color-fuchsia-50: #fdfaf4;
+  --color-fuchsia-100: #f9f1e1;
+  --color-fuchsia-200: #f1dfc1;
+  --color-fuchsia-300: #e6c99c;
+  --color-fuchsia-400: #d8ad72;
+  --color-fuchsia-500: #c8934f;
+  --color-fuchsia-600: #b37a3b;
+  --color-fuchsia-700: #945f32;
+  --color-fuchsia-800: #784d2d;
+  --color-fuchsia-900: #644128;
+  --color-fuchsia-950: #392213;
+
+  --color-pink-400: #d8ad72;
+  --color-pink-500: #c8934f;
+  --color-pink-600: #b37a3b;
+
+  /* Direct Semantic Tokens */
+  --color-olive-50: #f4f6f1;
+  --color-olive-100: #e6ecde;
+  --color-olive-200: #cfdac3;
+  --color-olive-300: #b0c3a1;
+  --color-olive-400: #8ea77a;
+  --color-olive-500: #6b8956;
+  --color-olive-600: #516d3e;
+  --color-olive-700: #3f5530;
+  --color-olive-800: #344429;
+  --color-olive-900: #2c3923;
+  --color-olive-950: #141c10;
+
+  --color-wood-50: #fdfaf4;
+  --color-wood-100: #f9f1e1;
+  --color-wood-200: #f1dfc1;
+  --color-wood-300: #e6c99c;
+  --color-wood-400: #d8ad72;
+  --color-wood-500: #c8934f;
+  --color-wood-600: #b37a3b;
+  --color-wood-700: #945f32;
+  --color-wood-800: #784d2d;
+  --color-wood-900: #644128;
+  --color-wood-950: #392213;
 }
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #0a0a0a;
+    --background: #fbf9f5; /* Warm Ivory Alabaster */
+    --foreground: #1c221a; /* Deep Wood Charcoal */
   }
   
   .dark {
-    --background: #0f1115; /* Deep Onyx for premium look */
-    --foreground: #ededed;
+    --background: #111411; /* Deep Forest Moss / Dark Timber */
+    --foreground: #f1f4ed; /* Soft Alabaster text */
   }
   
   body {

@@ -19,15 +19,21 @@ export function Footer() {
           {/* Brand & About */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <span className="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400">
-                EXTIM
+              <span className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400">
+                گالری چوب سنجاقک
               </span>
             </Link>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              اکستیم، تجربه‌ای نوین در خرید آنلاین. ما با ارائه بهترین محصولات و خدمات، سعی در جلب رضایت شما داریم. تضمین اصالت کالا و پشتیبانی ۲۴ ساعته.
+              گالری چوب سنجاقک، پیشرو در آفرینش سازه‌ها و محصولات دست‌ساز چوبی. تلاقی هنر دست، طبیعت و طراحی مدرن با تضمین اصالت و کیفیت ماندگار.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              <a href="#" className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25">
+              <a
+                href="https://instagram.com/dragonfly.wood"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25">
@@ -36,7 +42,13 @@ export function Footer() {
               <a href="#" className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25">
+              <a
+                href="https://t.me/+989217204707"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Telegram"
+                className="w-10 h-10 rounded-full bg-violet-100 dark:bg-white/5 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all shadow-sm hover:shadow-violet-500/25"
+              >
                 <Send className="w-5 h-5" />
               </a>
             </div>
@@ -103,11 +115,15 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <Phone className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0" />
-                <span dir="ltr" className="font-medium">۰۲۱ - ۸۸۸۸ ۸۸۸۸</span>
+                <a href="tel:09217204707" dir="ltr" className="font-medium hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                  ۰۹۲۱۷۲۰۴۷۰۷
+                </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <Mail className="w-5 h-5 text-violet-600 dark:text-violet-400 shrink-0" />
-                <span dir="ltr" className="font-medium">support@extim.com</span>
+                <a href="mailto:info@dragonflywood.ir" dir="ltr" className="font-medium hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                  info@dragonflywood.ir
+                </a>
               </li>
             </ul>
             
@@ -129,7 +145,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-black/5 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center md:text-right">
-            تمامی حقوق این سایت متعلق به <span className="text-violet-600 dark:text-violet-400 font-bold">EXTIM</span> می‌باشد. © {new Date().getFullYear()}
+            تمامی حقوق این سایت متعلق به <span className="text-violet-600 dark:text-violet-400 font-bold">گالری چوب سنجاقک</span> می‌باشد. © {new Date().getFullYear()}
           </p>
           <div className="flex items-center gap-2">
             <div className="h-8 w-12 bg-gray-200 dark:bg-white/10 rounded-md flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-400 border border-black/5 dark:border-white/10">شتاب</div>
