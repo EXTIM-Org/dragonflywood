@@ -4,6 +4,7 @@ import { Plus, Edit2, ArrowUp, ArrowDown, Download } from "lucide-react";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { ProductFilters } from "@/components/admin/ProductFilters";
 import { BulkImportModal } from "@/components/admin/BulkImportModal";
+import { Pagination } from "@/components/ui/Pagination";
 import { e2p } from "@/lib/persian";
 
 function SortableHeader({ 
@@ -24,12 +25,13 @@ function SortableHeader({
   
   const params = new URLSearchParams();
   for (const [key, val] of Object.entries(searchParams)) {
-    if (val !== undefined && val !== null) {
+    if (val !== undefined && val !== null && key !== "sort" && key !== "order" && key !== "page") {
       params.set(key, String(val));
     }
   }
   params.set("sort", field);
   params.set("order", nextOrder);
+  params.set("page", "1");
   
   return (
     <Link href={`?${params.toString()}`} className="flex items-center gap-1.5 hover:text-violet-500 transition-colors w-fit">
@@ -47,6 +49,11 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
   const categoryId = typeof searchParams.category === 'string' ? searchParams.category : '';
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : '';
   const order = typeof searchParams.order === 'string' ? searchParams.order : 'desc';
+
+  const pageParam = searchParams.page;
+  const page = Math.max(1, parseInt(Array.isArray(pageParam) ? pageParam[0] : (pageParam || "1"), 10) || 1);
+  const limit = 10;
+  const offset = (page - 1) * limit;
 
   const categories = await db.orm.public.Category.all();
 
@@ -69,16 +76,34 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
     query = query.where({ categoryId });
   }
 
-  const products = await query.all();
+  let products: any[] = [];
+  let totalCount = 0;
 
-  // Handle inventory sort in JS since it's a nested aggregate
   if (sort === "inventory") {
-    products.sort((a, b) => {
+    // Inventory sort requires summing variant quantities in JS
+    const allMatching = await query.all();
+    totalCount = allMatching.length;
+    allMatching.sort((a, b) => {
       const stockA = a.variants?.reduce((acc: number, v: any) => acc + (v.inventory?.stockQuantity || 0), 0) || 0;
       const stockB = b.variants?.reduce((acc: number, v: any) => acc + (v.inventory?.stockQuantity || 0), 0) || 0;
       return order === "asc" ? stockA - stockB : stockB - stockA;
     });
+    products = allMatching.slice(offset, offset + limit);
+  } else {
+    const agg = await query.aggregate((a: any) => ({ total: a.count() }));
+    totalCount = Number(agg.total) || 0;
+    products = await query.limit(limit).offset(offset).all();
   }
+
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const queryParams = new URLSearchParams();
+  if (q) queryParams.set("q", q);
+  if (categoryId) queryParams.set("category", categoryId);
+  if (sort) queryParams.set("sort", sort);
+  if (order && sort) queryParams.set("order", order);
+  queryParams.set("page", "__PAGE__");
+  const buildHrefPattern = `?${queryParams.toString()}`;
 
   return (
     <div className="space-y-6">
@@ -128,7 +153,7 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
                     هیچ محصولی یافت نشد.
                   </td>
                 </tr>
@@ -181,9 +206,20 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
           </table>
         </div>
         
-        <div className="p-4 border-t border-black/10 dark:border-white/10 text-center text-sm text-gray-500">
-          نمایش {e2p(products.length)} محصول
-        </div>
+        {totalPages > 1 ? (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            limit={limit}
+            buildHrefPattern={buildHrefPattern}
+            className="rounded-t-none"
+          />
+        ) : (
+          <div className="p-4 border-t border-black/10 dark:border-white/10 text-center text-sm text-gray-500">
+            نمایش {e2p(products.length)} محصول
+          </div>
+        )}
       </div>
     </div>
   );

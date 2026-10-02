@@ -32,6 +32,7 @@ export function ProductFilters({ categories }: { categories: any[] }) {
       } else {
         params.delete(name);
       }
+      params.delete("page");
       return params.toString();
     },
     [searchParams]
