@@ -56,9 +56,10 @@ export async function getUserCheckoutData() {
     for (const item of cart.items) {
       const product = item.variant?.product;
       if (!product) continue;
-      const weightRes = extractProductWeightGrams(product);
+      const displayName = item.variant?.name ? `${product.name} (${item.variant.name})` : product.name;
+      const weightRes = extractProductWeightGrams({ ...product, name: displayName });
       if (!weightRes.success) {
-        missingWeightProduct = product.name;
+        missingWeightProduct = displayName;
         missingWeightError = weightRes.error;
         break;
       }
@@ -177,13 +178,14 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
       const product = cartItem.variant?.product;
       if (!product) continue;
 
-      const weightRes = extractProductWeightGrams(product);
+      const displayName = cartItem.variant?.name ? `${product.name} (${cartItem.variant.name})` : product.name;
+      const weightRes = extractProductWeightGrams({ ...product, name: displayName });
       if (!weightRes.success) {
         if (isFreeShipping) {
-          log.info({ productId: product.id, productName: product.name }, "Free shipping applied: using fallback weight for unweighted product");
+          log.info({ productId: product.id, productName: displayName }, "Free shipping applied: using fallback weight for unweighted product");
           totalWeightGrams += DEFAULT_ITEM_WEIGHT_GRAMS * cartItem.quantity;
         } else {
-          log.warn({ productId: product.id, productName: product.name }, "Checkout blocked: missing product weight");
+          log.warn({ productId: product.id, productName: displayName }, "Checkout blocked: missing product weight");
           return { error: weightRes.error };
         }
       } else {

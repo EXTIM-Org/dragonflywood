@@ -30,7 +30,8 @@ export async function fetchUserCart() {
   
   const mappedItems = cart.items.map(item => {
     const product = item.variant?.product;
-    const weightRes = product ? extractProductWeightGrams(product) : null;
+    const displayName = item.variant?.name ? `${product?.name} (${item.variant.name})` : (product?.name || "محصول نامشخص");
+    const weightRes = product ? extractProductWeightGrams({ ...product, name: displayName }) : null;
     return {
       id: item.variantId,
       productId: item.variant?.productId || "",

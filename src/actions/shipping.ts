@@ -158,14 +158,15 @@ export async function calculateShippingFeeAction(params: {
       const product = variant?.product;
       if (!variant || !product) continue;
 
-      const weightRes = extractProductWeightGrams(product);
+      const displayName = variant.name ? `${product.name} (${variant.name})` : product.name;
+      const weightRes = extractProductWeightGrams({ ...product, name: displayName });
       if (!weightRes.success) {
         if (isFreeShipping) {
           totalWeightGrams += DEFAULT_ITEM_WEIGHT_GRAMS * item.quantity;
         } else {
           return {
             success: false,
-            missingWeightProduct: product.name,
+            missingWeightProduct: displayName,
             error: weightRes.error,
             shippingCost: 0,
             isFree: false,
