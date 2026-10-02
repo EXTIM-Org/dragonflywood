@@ -1,5 +1,7 @@
 "use client";
 
+import toast from "react-hot-toast";
+
 import { useState } from "react";
 import { Plus, Edit2, Trash2, RefreshCw, Upload, Image as ImageIcon } from "lucide-react";
 import { createCategory, updateCategory, deleteCategory, uploadCategoryImage } from "@/actions/category";
@@ -15,6 +17,8 @@ export function CategoryClient({ categories }: { categories: any[] }) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [categoryToDelete, setCategoryToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const gradients = [
     "from-pink-500 to-rose-500",
@@ -91,12 +95,21 @@ export function CategoryClient({ categories }: { categories: any[] }) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("آیا از حذف این دسته‌بندی اطمینان دارید؟")) {
-      const res = await deleteCategory(id);
-      if (!res.success) {
-        alert(res.error);
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteCategory(categoryToDelete.id);
+      if (res.success) {
+        toast.success("دسته‌بندی با موفقیت حذف شد");
+        setCategoryToDelete(null);
+      } else {
+        toast.error(res.error || "خطا در حذف دسته‌بندی");
       }
+    } catch {
+      toast.error("خطا در برقراری ارتباط با سرور");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -141,7 +154,7 @@ export function CategoryClient({ categories }: { categories: any[] }) {
                   <button onClick={() => openEdit(cat)} className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(cat.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                  <button onClick={() => setCategoryToDelete(cat)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors" title="حذف دسته‌بندی">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -304,6 +317,54 @@ export function CategoryClient({ categories }: { categories: any[] }) {
                 </button>
               </div>
         </form>
+      </Modal>
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(categoryToDelete)}
+        onClose={() => !isDeleting && setCategoryToDelete(null)}
+        title="تایید حذف دسته‌بندی"
+        maxWidth="md"
+      >
+        <div className="flex flex-col gap-6 items-center text-center py-2">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+            <Trash2 className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              آیا از حذف این دسته‌بندی اطمینان دارید؟
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
+              دسته‌بندی <span className="font-semibold text-gray-900 dark:text-white">«{categoryToDelete?.name}»</span> به‌طور کامل از فروشگاه حذف خواهد شد. این عملیات قابل بازگشت نیست.
+            </p>
+          </div>
+
+          <div className="flex gap-3 w-full pt-2">
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleConfirmDelete}
+              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-3 font-semibold transition-colors flex justify-center items-center gap-2 disabled:opacity-50 shadow-lg shadow-rose-500/20"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <span>در حال حذف...</span>
+                </>
+              ) : (
+                "بله، حذف شود"
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setCategoryToDelete(null)}
+              className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl py-3 font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              انصراف
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
