@@ -83,7 +83,7 @@ export async function queryTapinBarcodeAction(barcode: string) {
 import { db } from "@/prisma/db";
 import { getEffectivePrice } from "@/lib/price";
 import { getStoreSettings } from "@/actions/settings";
-import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS, getProvinceList, getCitiesByProvince } from "@/lib/tapin-rates";
+import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS, getProvinceList, getCitiesByProvince, extractProductWeightGrams } from "@/lib/tapin-rates";
 
 /**
  * Return list of all Iranian provinces
@@ -149,20 +149,17 @@ export async function calculateShippingFeeAction(params: {
       const { finalPrice } = getEffectivePrice(basePrice, product.discount, product.flashSale);
       subtotal += finalPrice * item.quantity;
 
-      let itemWeightGrams = DEFAULT_ITEM_WEIGHT_GRAMS; // 2000g default
-      const specs = (product as any).specifications || [];
-      const weightSpec = specs.find((s: any) => s.name?.includes("وزن"));
-      if (weightSpec && weightSpec.value) {
-        const parsed = parseFloat(String(weightSpec.value).replace(/,/g, ".").replace(/[^\d.]/g, ""));
-        if (!isNaN(parsed) && parsed > 0) {
-          if (weightSpec.name.includes("کیلو") || parsed < 50) {
-            itemWeightGrams = Math.round(parsed * 1000);
-          } else {
-            itemWeightGrams = Math.round(parsed);
-          }
-        }
+      const weightRes = extractProductWeightGrams(product);
+      if (!weightRes.success) {
+        return {
+          success: false,
+          missingWeightProduct: product.name,
+          error: weightRes.error,
+          shippingCost: 0,
+          isFree: false,
+        };
       }
-      totalWeightGrams += itemWeightGrams * item.quantity;
+      totalWeightGrams += weightRes.weightGrams * item.quantity;
     }
 
     const storeSettings = await getStoreSettings();

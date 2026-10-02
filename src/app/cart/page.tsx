@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useCart } from "@/store/CartContext";
-import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, Check, Clock, Gift } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, Check, Clock, Gift, AlertTriangle } from "lucide-react";
 import { getStoreSettings } from "@/actions/settings";
 import { getActivePromotions } from "@/actions/promotions";
 
@@ -68,6 +68,7 @@ export default function CartPage() {
 
   const isFreeShipping = freeShippingEnabled && (totalPrice - cartDiscount) >= shippingThreshold;
   const finalPayable = totalPrice - cartDiscount;
+  const missingWeightItem = items.find((item) => item.weightError != null);
 
   // Free Shipping Progress Calculation
   const progressPercent = freeShippingEnabled ? Math.min(100, Math.max(0, ((totalPrice - cartDiscount) / shippingThreshold) * 100)) : 0;
@@ -229,6 +230,12 @@ export default function CartPage() {
                       ) : (
                         <p className="text-xs text-gray-400 mt-2">برای رزرو کالا لاگین کنید</p>
                       )}
+                      {item.weightError && (
+                        <p className="text-xs text-rose-500 dark:text-rose-400 mt-2 flex items-center gap-1.5 font-medium bg-rose-50 dark:bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-500/20">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          {item.weightError}
+                        </p>
+                      )}
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.id)}
@@ -307,6 +314,16 @@ export default function CartPage() {
                 </div>
               </div>
               
+              {missingWeightItem && (
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl flex items-start gap-2.5 text-amber-900 dark:text-amber-200 text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-bold">عدم امکان محاسبه هزینه ارسال</span>
+                    <span>{missingWeightItem.weightError}</span>
+                  </div>
+                </div>
+              )}
+
               <Link href="/checkout" className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg py-4 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all active:scale-[0.98]">
                 تکمیل خرید و پرداخت
               </Link>

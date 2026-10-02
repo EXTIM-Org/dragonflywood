@@ -12,6 +12,69 @@ export interface CityInfo {
   title: string;
 }
 
+export interface ProductWithSpecs {
+  id?: string;
+  name: string;
+  specifications?: Array<{ name?: string | null; value?: string | null }> | null;
+}
+
+/**
+ * Robustly parses numbers containing Persian/Arabic digits, commas, or slashes
+ */
+export function parseNumberPersian(val: string | number | null | undefined): number {
+  if (val === null || val === undefined) return NaN;
+  const str = String(val)
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632))
+    .replace(/[,،/]/g, ".")
+    .replace(/[^\d.]/g, "")
+    .trim();
+  return parseFloat(str);
+}
+
+/**
+ * Extracts product weight in grams from product specifications.
+ * Checks for any spec with name containing "وزن".
+ * Returns weight in grams if valid, or a descriptive error if missing/invalid.
+ */
+export function extractProductWeightGrams(product: ProductWithSpecs):
+  | { success: true; weightGrams: number }
+  | { success: false; error: string; productName: string } {
+  const specs = product.specifications || [];
+  const weightSpec = specs.find((s) => s?.name && s.name.includes("وزن"));
+
+  if (!weightSpec || !weightSpec.value || String(weightSpec.value).trim() === "") {
+    return {
+      success: false,
+      productName: product.name,
+      error: `با توجه به عدم دسترسی به وزن ${product.name} محاسبه‌ی هزینه‌ی ارسال مقدور نیست.`,
+    };
+  }
+
+  const parsed = parseNumberPersian(weightSpec.value);
+  if (isNaN(parsed) || parsed <= 0) {
+    return {
+      success: false,
+      productName: product.name,
+      error: `با توجه به عدم دسترسی به وزن ${product.name} محاسبه‌ی هزینه‌ی ارسال مقدور نیست.`,
+    };
+  }
+
+  let weightGrams = parsed;
+  const nameAndValue = (String(weightSpec.name) + " " + String(weightSpec.value)).toLowerCase();
+
+  if (nameAndValue.includes("کیلو") || nameAndValue.includes("kg") || parsed < 50) {
+    weightGrams = Math.round(parsed * 1000);
+  } else {
+    weightGrams = Math.round(parsed);
+  }
+
+  return {
+    success: true,
+    weightGrams: Math.max(1, weightGrams),
+  };
+}
+
 export interface ShippingCalculationParams {
   subtotalPrice: number; // in Tomans
   totalWeightGrams?: number;

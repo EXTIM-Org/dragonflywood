@@ -1,6 +1,6 @@
 "use server";
 
-import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS } from "@/lib/tapin-rates";
+import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS, extractProductWeightGrams } from "@/lib/tapin-rates";
 
 import { db } from "@/prisma/db";
 import { getSession } from "@/lib/session";
@@ -29,15 +29,42 @@ export async function getUserCheckoutData() {
 
   const userId = session.userId as string;
 
-  // Get user details
-  const user = await db.orm.public.User.where({ id: userId }).first();
+  // Get user details, latest address, latest order, and cart with specifications
+  const [user, latestAddress, latestOrder, cart] = await Promise.all([
+    db.orm.public.User.where({ id: userId }).first(),
+    db.orm.public.Address.where({ userId }).orderBy((a) => a.createdAt.desc()).first(),
+    db.orm.public.Order.where({ userId }).orderBy((o) => o.createdAt.desc()).first(),
+    db.orm.public.Cart
+      .where({ userId })
+      .include("items", (item) =>
+        item.include("variant", (variant) =>
+          variant.include("product", (product) =>
+            product.include("specifications")
+          )
+        )
+      )
+      .first(),
+  ]);
+
   if (!user) return null;
 
-  // Get their latest address
-  const latestAddress = await db.orm.public.Address.where({ userId }).orderBy((a) => a.createdAt.desc()).first();
-  
-  // Get their latest order to extract the last used phone and receiver name
-  const latestOrder = await db.orm.public.Order.where({ userId }).orderBy((o) => o.createdAt.desc()).first();
+  let totalWeightGrams = 0;
+  let missingWeightProduct: string | null = null;
+  let missingWeightError: string | null = null;
+
+  if (cart && cart.items.length > 0) {
+    for (const item of cart.items) {
+      const product = item.variant?.product;
+      if (!product) continue;
+      const weightRes = extractProductWeightGrams(product);
+      if (!weightRes.success) {
+        missingWeightProduct = product.name;
+        missingWeightError = weightRes.error;
+        break;
+      }
+      totalWeightGrams += weightRes.weightGrams * item.quantity;
+    }
+  }
 
   return {
     receiverName: latestOrder?.receiverName || user.name || "",
@@ -48,6 +75,9 @@ export async function getUserCheckoutData() {
     province: latestAddress?.province || "",
     lat: latestAddress?.lat || null,
     lng: latestAddress?.lng || null,
+    totalWeightGrams,
+    missingWeightProduct,
+    missingWeightError,
   };
 }
 
@@ -143,20 +173,15 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
     // Calculate total order weight based on products' specifications
     let totalWeightGrams = 0;
     for (const cartItem of cart.items) {
-      let itemWeightGrams = DEFAULT_ITEM_WEIGHT_GRAMS; // 2000g default if missing
-      const specs = (cartItem.variant?.product as any)?.specifications || [];
-      const weightSpec = specs.find((s: any) => s.name?.includes("وزن"));
-      if (weightSpec && weightSpec.value) {
-        const parsed = parseFloat(String(weightSpec.value).replace(/,/g, ".").replace(/[^\d.]/g, ""));
-        if (!isNaN(parsed) && parsed > 0) {
-          if (weightSpec.name.includes("کیلو") || parsed < 50) {
-            itemWeightGrams = Math.round(parsed * 1000);
-          } else {
-            itemWeightGrams = Math.round(parsed);
-          }
-        }
+      const product = cartItem.variant?.product;
+      if (!product) continue;
+
+      const weightRes = extractProductWeightGrams(product);
+      if (!weightRes.success) {
+        log.warn({ productId: product.id, productName: product.name }, "Checkout blocked: missing product weight");
+        return { error: weightRes.error };
       }
-      totalWeightGrams += itemWeightGrams * cartItem.quantity;
+      totalWeightGrams += weightRes.weightGrams * cartItem.quantity;
     }
 
     const shippingResult = calculateTapinShippingCost({

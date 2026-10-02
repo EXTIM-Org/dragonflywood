@@ -7,6 +7,7 @@ import { getEffectivePrice } from "@/lib/price";
 import { cartCleanupQueue, abandonedCartQueue } from "@/jobs/queues";
 import { redis } from "@/lib/redis";
 import { calculatePromotionDiscount } from "@/lib/promotions";
+import { extractProductWeightGrams } from "@/lib/tapin-rates";
 
 const RESERVATION_MINUTES = 15;
 
@@ -22,23 +23,29 @@ export async function fetchUserCart() {
   
   const cart = await db.orm.public.Cart
     .where({ userId })
-    .include("items", (i) => i.include("variant", (v) => v.include("product", (p) => p.include("flashSale"))))
+    .include("items", (i) => i.include("variant", (v) => v.include("product", (p) => p.include("flashSale").include("specifications"))))
     .first();
     
   if (!cart) return { success: true, items: [] };
   
-  const mappedItems = cart.items.map(item => ({
-    id: item.variantId,
-    productId: item.variant?.productId || "",
-    categoryId: item.variant?.product?.categoryId,
-    variantId: item.variantId,
-    name: item.variant?.product?.name || "محصول نامشخص",
-    variantName: item.variant?.name || null,
-    price: getEffectivePrice(item.variant?.price ?? item.variant?.product?.basePrice ?? 0, item.variant?.product?.discount ?? 0, item.variant?.product?.flashSale).finalPrice,
-    quantity: item.quantity,
-    image: item.variant?.product?.images[0] || "",
-    reservedAt: item.reservedAt,
-  }));
+  const mappedItems = cart.items.map(item => {
+    const product = item.variant?.product;
+    const weightRes = product ? extractProductWeightGrams(product) : null;
+    return {
+      id: item.variantId,
+      productId: item.variant?.productId || "",
+      categoryId: item.variant?.product?.categoryId,
+      variantId: item.variantId,
+      name: item.variant?.product?.name || "محصول نامشخص",
+      variantName: item.variant?.name || null,
+      price: getEffectivePrice(item.variant?.price ?? item.variant?.product?.basePrice ?? 0, item.variant?.product?.discount ?? 0, item.variant?.product?.flashSale).finalPrice,
+      quantity: item.quantity,
+      image: item.variant?.product?.images[0] || "",
+      reservedAt: item.reservedAt,
+      weightGrams: weightRes && weightRes.success ? weightRes.weightGrams : null,
+      weightError: weightRes && !weightRes.success ? weightRes.error : null,
+    };
+  });
   
   // Calculate dynamic promotions
   let totalCartDiscount = 0;

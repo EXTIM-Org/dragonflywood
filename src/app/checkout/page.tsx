@@ -8,7 +8,7 @@ import { useCart } from "@/store/CartContext";
 import { getUserCheckoutData, processCheckout } from "@/actions/checkout";
 import { getStoreSettings } from "@/actions/settings";
 import { useRouter } from "next/navigation";
-import { ArrowRight, MapPin, CreditCard, ShieldCheck, CheckCircle2, Tags } from "lucide-react";
+import { ArrowRight, MapPin, CreditCard, ShieldCheck, CheckCircle2, Tags, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import dynamic from "next/dynamic";
@@ -22,16 +22,18 @@ const MapComponent = dynamic(() => import("@/components/profile/MapComponent"), 
   ),
 });
 
-function SubmitButton() {
+function SubmitButton({ disabled, disabledReason }: { disabled?: boolean; disabledReason?: string }) {
   const { pending } = useFormStatus();
+  const isDisabled = pending || Boolean(disabled);
   return (
     <button 
       type="submit" 
-      aria-disabled={pending}
-      className={`w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold py-4 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all ${pending ? 'opacity-70 cursor-not-allowed pointer-events-none' : ''}`}
-      onClick={(e) => { if (pending) e.preventDefault(); }}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      className={`w-full bg-gradient-to-r ${isDisabled ? 'from-gray-400 to-gray-500 cursor-not-allowed opacity-60' : 'from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)]'} text-white font-bold py-4 rounded-2xl transition-all`}
+      onClick={(e) => { if (isDisabled) e.preventDefault(); }}
     >
-      {pending ? "در حال پردازش..." : "پرداخت و ثبت نهایی سفارش"}
+      {pending ? "در حال پردازش..." : disabledReason ? disabledReason : "پرداخت و ثبت نهایی سفارش"}
     </button>
   );
 }
@@ -41,23 +43,56 @@ export default function CheckoutPage() {
   const [state, formAction] = useActionState(processCheckout, null);
   const router = useRouter();
 
-  const [initialData, setInitialData] = useState<{receiverName: string, phone: string, address: string, postalCode: string, city: string, province: string, lat: number | null, lng: number | null} | null>(null);
+  const [initialData, setInitialData] = useState<{
+    receiverName: string;
+    phone: string;
+    address: string;
+    postalCode: string;
+    city: string;
+    province: string;
+    lat: number | null;
+    lng: number | null;
+    totalWeightGrams?: number;
+    missingWeightProduct?: string | null;
+    missingWeightError?: string | null;
+  } | null>(null);
   const [shippingThreshold, setShippingThreshold] = useState(2000000);
   const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const discountedSubtotal = Math.max(0, totalPrice - cartDiscount);
 
+  // Detect missing weight product from CartContext items or initialData
+  const missingWeightItem = useMemo(() => {
+    return items.find((item) => item.weightError != null);
+  }, [items]);
+
+  const activeWeightError = missingWeightItem?.weightError || initialData?.missingWeightError || null;
+
+  const totalWeightGrams = useMemo(() => {
+    if (items.length > 0 && items.every((i) => typeof i.weightGrams === "number")) {
+      return items.reduce((sum, item) => sum + (item.weightGrams || 0) * item.quantity, 0);
+    }
+    return initialData?.totalWeightGrams || (totalItems * DEFAULT_ITEM_WEIGHT_GRAMS);
+  }, [items, initialData?.totalWeightGrams, totalItems]);
+
   const shippingResult = useMemo(() => {
+    if (activeWeightError) {
+      return {
+        shippingCost: 0,
+        isFree: false,
+        provinceTitle: "",
+      };
+    }
     return calculateTapinShippingCost({
       subtotalPrice: discountedSubtotal,
-      totalWeightGrams: totalItems * DEFAULT_ITEM_WEIGHT_GRAMS,
+      totalWeightGrams,
       province: selectedProvince || initialData?.province || "",
       city: selectedCity || initialData?.city || "",
       freeShippingEnabled,
       freeShippingThreshold: shippingThreshold,
     });
-  }, [discountedSubtotal, totalItems, selectedProvince, selectedCity, initialData?.province, initialData?.city, freeShippingEnabled, shippingThreshold]);
+  }, [discountedSubtotal, totalWeightGrams, selectedProvince, selectedCity, initialData?.province, initialData?.city, freeShippingEnabled, shippingThreshold, activeWeightError]);
 
   const shippingCost = shippingResult.shippingCost;
   const isFreeShipping = shippingResult.isFree;
@@ -201,6 +236,16 @@ export default function CheckoutPage() {
           {/* Left Column: Address and Data */}
           <div className="flex flex-col gap-6">
             
+            {activeWeightError && (
+              <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 px-4 py-3 rounded-2xl text-sm flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold">خطا در محاسبه هزینه ارسال</span>
+                  <span>{activeWeightError}</span>
+                </div>
+              </div>
+            )}
+
             {state?.error && (
               <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
                 {state.error}
@@ -369,9 +414,15 @@ export default function CheckoutPage() {
                       پست پیشتاز تاپین (مبدا: شیراز {shippingResult.provinceTitle ? `← مقصد: ${shippingResult.provinceTitle}` : ''})
                     </span>
                   </div>
-                  <span className={`font-medium ${isFreeShipping ? "text-green-600 dark:text-green-400 font-bold" : "text-gray-900 dark:text-white"}`}>
-                    {isFreeShipping ? "رایگان" : `${shippingCost.toLocaleString('fa-IR')} تومان`}
-                  </span>
+                  {activeWeightError ? (
+                    <span className="font-bold text-rose-500 dark:text-rose-400 text-xs">
+                      غیرقابل محاسبه
+                    </span>
+                  ) : (
+                    <span className={`font-medium ${isFreeShipping ? "text-green-600 dark:text-green-400 font-bold" : "text-gray-900 dark:text-white"}`}>
+                      {isFreeShipping ? "رایگان" : `${shippingCost.toLocaleString('fa-IR')} تومان`}
+                    </span>
+                  )}
                 </div>
                 {appliedDiscount > 0 && (
                   <div className="flex justify-between items-center text-green-600 dark:text-green-400">
@@ -384,12 +435,33 @@ export default function CheckoutPage() {
               <div className="flex justify-between items-end pt-2 mb-4">
                 <span className="font-medium text-gray-700 dark:text-gray-300 text-lg">مبلغ قابل پرداخت:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-500">
-                    {finalPayable.toLocaleString('fa-IR')}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">تومان</span>
+                  {activeWeightError ? (
+                    <span className="text-base font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-3 py-1 rounded-lg border border-rose-200 dark:border-rose-500/20">
+                      غیرقابل پرداخت
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-500">
+                        {finalPayable.toLocaleString('fa-IR')}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">تومان</span>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {activeWeightError && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl flex items-start gap-3 text-amber-900 dark:text-amber-200 text-sm">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-1">
+                    <span className="font-bold">خطا در محاسبه هزینه ارسال</span>
+                    <span className="font-medium">{activeWeightError}</span>
+                    <span className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      به دلیل عدم ثبت وزن کالا، این فاکتور قابل پرداخت نمی‌باشد.
+                    </span>
+                  </div>
+                </div>
+              )}
               
               {state?.error && (
                 <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm rounded-xl text-center font-medium">
@@ -397,7 +469,10 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <SubmitButton />
+              <SubmitButton 
+                disabled={Boolean(activeWeightError)} 
+                disabledReason={activeWeightError ? "فاکتور غیرقابل پرداخت است" : undefined} 
+              />
               
               <p className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
                 <ShieldCheck className="w-4 h-4 text-green-500/70" />

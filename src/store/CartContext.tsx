@@ -21,6 +21,8 @@ export interface CartItem {
   image: string;
   reservedAt?: string | null;
   categoryId?: string | null;
+  weightGrams?: number | null;
+  weightError?: string | null;
 }
 
 interface CartContextType {
