@@ -66,6 +66,9 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           params.set(key, value);
         }
       });
+      if (!("page" in updates)) {
+        params.delete("page");
+      }
       return params.toString();
     },
     [searchParams]

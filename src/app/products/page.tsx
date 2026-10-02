@@ -1,6 +1,7 @@
 import { db } from '@/prisma/db';
 import { ProductCard } from '@/components/product/ProductCard';
 import { ProductFilters } from '@/components/product/ProductFilters';
+import { Pagination } from '@/components/ui/Pagination';
 import { getSession } from '@/lib/session';
 
 export const metadata = {
@@ -19,6 +20,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const minPrice = typeof params.minPrice === 'string' ? parseInt(params.minPrice) : undefined;
   const maxPrice = typeof params.maxPrice === 'string' ? parseInt(params.maxPrice) : undefined;
   const sort = typeof params.sort === 'string' ? params.sort : 'newest';
+
+  const pageParam = params.page;
+  const page = Math.max(1, parseInt(Array.isArray(pageParam) ? pageParam[0] : (pageParam || "1"), 10) || 1);
+  const limit = 15; // 5 rows * 3 columns = 15 products per page
+  const offset = (page - 1) * limit;
 
   // Fetch categories for the filter sidebar
   const categories = await db.orm.public.Category.select("id", "name", "slug").all();
@@ -44,6 +50,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   if (maxPrice && !isNaN(maxPrice)) {
     query = query.where((p) => p.basePrice.lte(maxPrice));
   }
+
+  // Count total matching items before limit/offset
+  const agg = await query.aggregate((a: any) => ({ total: a.count() }));
+  const totalCount = Number(agg.total) || 0;
+  const totalPages = Math.ceil(totalCount / limit);
   
   // Apply sorting
   if (sort === 'price_asc') {
@@ -57,8 +68,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     query = query.orderBy((p) => p.createdAt.desc());
   }
 
-  // Execute query
-  const products = await query.all();
+  // Execute query with pagination
+  const products = await query.limit(limit).offset(offset).all();
 
   const session = await getSession();
   let userWishlistProductIds = new Set<string>();
@@ -79,7 +90,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     '@type': 'ItemList',
     'itemListElement': products.map((product, index) => ({
       '@type': 'ListItem',
-      'position': index + 1,
+      'position': offset + index + 1,
       'item': {
         '@type': 'Product',
         'name': product.name,
@@ -94,6 +105,15 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       }
     }))
   };
+
+  const queryParams = new URLSearchParams();
+  if (q) queryParams.set("q", q);
+  if (category) queryParams.set("category", category);
+  if (minPrice && !isNaN(minPrice)) queryParams.set("minPrice", minPrice.toString());
+  if (maxPrice && !isNaN(maxPrice)) queryParams.set("maxPrice", maxPrice.toString());
+  if (sort && sort !== 'newest') queryParams.set("sort", sort);
+  queryParams.set("page", "__PAGE__");
+  const buildHrefPattern = `?${queryParams.toString()}`;
 
   return (
     <main className="min-h-screen pt-28 pb-20 px-6">
@@ -126,14 +146,25 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 <p className="text-xl text-gray-600 dark:text-gray-400">متاسفانه هیچ محصولی با این مشخصات یافت نشد.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    initialIsLiked={userWishlistProductIds.has(product.id)}
-                  />
-                ))}
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map(product => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      initialIsLiked={userWishlistProductIds.has(product.id)}
+                    />
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  limit={limit}
+                  buildHrefPattern={buildHrefPattern}
+                  className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl shadow-sm dark:shadow-none"
+                />
               </div>
             )}
           </div>
