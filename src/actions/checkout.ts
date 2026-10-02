@@ -1,5 +1,7 @@
 "use server";
 
+import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS } from "@/lib/tapin-rates";
+
 import { db } from "@/prisma/db";
 import { getSession } from "@/lib/session";
 import { z } from "zod";
@@ -97,7 +99,7 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
 
     const cart = await db.orm.public.Cart
       .where({ userId: session.userId as string })
-      .include("items", (item) => item.include("variant", (variant) => variant.include("product", (product) => product.include("flashSale"))))
+      .include("items", (item) => item.include("variant", (variant) => variant.include("product", (product) => product.include("flashSale").include("specifications"))))
       .first();
 
     if (!cart || cart.items.length === 0) {
@@ -137,7 +139,35 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
     );
     const discountedSubtotal = Math.max(0, totalAmount - promotionDiscount);
     const storeSettings = await getStoreSettings();
-    const shipping = discountedSubtotal > storeSettings.free_shipping_threshold ? 0 : 45000;
+
+    // Calculate total order weight based on products' specifications
+    let totalWeightGrams = 0;
+    for (const cartItem of cart.items) {
+      let itemWeightGrams = DEFAULT_ITEM_WEIGHT_GRAMS; // 2000g default if missing
+      const specs = (cartItem.variant?.product as any)?.specifications || [];
+      const weightSpec = specs.find((s: any) => s.name?.includes("وزن"));
+      if (weightSpec && weightSpec.value) {
+        const parsed = parseFloat(String(weightSpec.value).replace(/,/g, ".").replace(/[^\d.]/g, ""));
+        if (!isNaN(parsed) && parsed > 0) {
+          if (weightSpec.name.includes("کیلو") || parsed < 50) {
+            itemWeightGrams = Math.round(parsed * 1000);
+          } else {
+            itemWeightGrams = Math.round(parsed);
+          }
+        }
+      }
+      totalWeightGrams += itemWeightGrams * cartItem.quantity;
+    }
+
+    const shippingResult = calculateTapinShippingCost({
+      subtotalPrice: discountedSubtotal,
+      totalWeightGrams,
+      province,
+      city,
+      freeShippingEnabled: storeSettings.free_shipping_enabled,
+      freeShippingThreshold: storeSettings.free_shipping_threshold,
+    });
+    const shipping = shippingResult.shippingCost;
 
     let couponDiscount = 0;
     let appliedCouponId: string | null = null;

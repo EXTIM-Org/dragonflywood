@@ -1,5 +1,7 @@
 "use client";
 
+import { ProvinceCitySelect } from "@/components/ui/ProvinceCitySelect";
+
 import { useState, useActionState, useEffect } from "react";
 import { addAddress } from "@/actions/address";
 import { Plus } from "lucide-react";
@@ -79,28 +81,7 @@ export function NewAddressForm() {
               <input type="hidden" name="lat" value={location?.lat || ""} />
               <input type="hidden" name="lng" value={location?.lng || ""} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm text-gray-700 dark:text-gray-300">استان</label>
-                  <input 
-                    type="text" 
-                    name="province"
-                    required
-                    className="bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500"
-                    placeholder="تهران"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm text-gray-700 dark:text-gray-300">شهر</label>
-                  <input 
-                    type="text" 
-                    name="city"
-                    required
-                    className="bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500"
-                    placeholder="تهران"
-                  />
-                </div>
-              </div>
+              <ProvinceCitySelect required />
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-gray-700 dark:text-gray-300">آدرس دقیق پستی</label>

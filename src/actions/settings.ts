@@ -73,6 +73,7 @@ export async function updateNotificationSettingValue(key: string, value: string)
 export async function getStoreSettings() {
   const settings = await redis.hgetall("settings:store");
   return {
+    free_shipping_enabled: settings["free_shipping_enabled"] === "true",
     free_shipping_threshold: parseInt(settings["free_shipping_threshold"] || "2000000", 10),
   };
 }

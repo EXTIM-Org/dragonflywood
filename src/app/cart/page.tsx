@@ -49,6 +49,7 @@ function ReservationTimer({ reservedAt }: { reservedAt: string }) {
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, totalPrice, totalItems, cartDiscount, isInitialized } = useCart();
   const [shippingThreshold, setShippingThreshold] = useState<number>(2000000);
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState<boolean>(false);
   const [promotions, setPromotions] = useState<any[]>([]);
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function CartPage() {
       if (settings.free_shipping_threshold) {
         setShippingThreshold(Number(settings.free_shipping_threshold));
       }
+      setFreeShippingEnabled(Boolean(settings.free_shipping_enabled));
       
       const activePromos = await getActivePromotions();
       setPromotions(activePromos);
@@ -64,12 +66,12 @@ export default function CartPage() {
     loadData();
   }, []);
 
-  const shippingCost = (totalPrice - cartDiscount) > shippingThreshold ? 0 : 45000;
-  const finalPayable = (totalPrice - cartDiscount) + (totalItems > 0 ? shippingCost : 0);
+  const isFreeShipping = freeShippingEnabled && (totalPrice - cartDiscount) >= shippingThreshold;
+  const finalPayable = totalPrice - cartDiscount;
 
   // Free Shipping Progress Calculation
-  const progressPercent = Math.min(100, Math.max(0, ((totalPrice - cartDiscount) / shippingThreshold) * 100));
-  const remainingForFreeShipping = Math.max(0, shippingThreshold - (totalPrice - cartDiscount));
+  const progressPercent = freeShippingEnabled ? Math.min(100, Math.max(0, ((totalPrice - cartDiscount) / shippingThreshold) * 100)) : 0;
+  const remainingForFreeShipping = freeShippingEnabled ? Math.max(0, shippingThreshold - (totalPrice - cartDiscount)) : 0;
 
   if (!isInitialized) {
     return (
@@ -113,6 +115,7 @@ export default function CartPage() {
         </div>
 
         {/* Free Shipping Progress Bar */}
+        {freeShippingEnabled && (
         <div className="mb-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/5 rounded-3xl shadow-sm relative overflow-hidden">
           {progressPercent >= 100 ? (
             <div className="flex items-center gap-4">
@@ -124,7 +127,7 @@ export default function CartPage() {
                   تبریک! ارسال سفارش شما رایگان شد 🎉
                 </h3>
                 <p className="text-sm text-emerald-600/80 dark:text-emerald-400/80 mt-1">
-                  هزینه پست پیشتاز (۴۵,۰۰۰ تومان) از فاکتور شما کسر شد.
+                  هزینه پست پیشتاز تاپین از فاکتور شما کسر شد.
                 </p>
               </div>
               {/* Confetti / Success Background Gradient */}
@@ -157,6 +160,7 @@ export default function CartPage() {
             </div>
           )}
         </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items List */}
@@ -281,11 +285,14 @@ export default function CartPage() {
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span>هزینه ارسال</span>
-                  {shippingCost === 0 ? (
+                  <div className="flex flex-col">
+                    <span>هزینه ارسال</span>
+                    <span className="text-[11px] text-gray-400">پست پیشتاز تاپین (مبدا: شیراز)</span>
+                  </div>
+                  {isFreeShipping ? (
                     <span className="font-bold text-green-500 dark:text-green-400 flex items-center gap-1"><Check className="w-4 h-4" /> رایگان</span>
                   ) : (
-                    <span className="font-medium text-gray-900 dark:text-white">{shippingCost.toLocaleString('fa-IR')} تومان</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">محاسبه بر اساس آدرس مقصد</span>
                   )}
                 </div>
               </div>

@@ -78,3 +78,114 @@ export async function queryTapinBarcodeAction(barcode: string) {
     };
   }
 }
+
+
+import { db } from "@/prisma/db";
+import { getEffectivePrice } from "@/lib/price";
+import { getStoreSettings } from "@/actions/settings";
+import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS, getProvinceList, getCitiesByProvince } from "@/lib/tapin-rates";
+
+/**
+ * Return list of all Iranian provinces
+ */
+export async function getShippingProvincesAction() {
+  return getProvinceList();
+}
+
+/**
+ * Return cities for a given province
+ */
+export async function getShippingCitiesAction(provinceIdOrName: number | string) {
+  return getCitiesByProvince(provinceIdOrName);
+}
+
+/**
+ * Action to estimate shipping fee live for a user's cart
+ */
+export async function calculateShippingFeeAction(params: {
+  province?: string | number | null;
+  city?: string | number | null;
+}) {
+  try {
+    const session = await getSession();
+    if (!session?.userId) {
+      // For unauthenticated user or guest, calculate standard rate with default weight
+      const storeSettings = await getStoreSettings();
+      const result = calculateTapinShippingCost({
+        subtotalPrice: 0,
+        totalWeightGrams: DEFAULT_ITEM_WEIGHT_GRAMS,
+        province: params.province,
+        city: params.city,
+        freeShippingEnabled: storeSettings.free_shipping_enabled,
+        freeShippingThreshold: storeSettings.free_shipping_threshold,
+      });
+      return { success: true, ...result };
+    }
+
+    const cart = await db.orm.public.Cart
+      .where({ userId: session.userId as string })
+      .include("items", (item) =>
+        item.include("variant", (variant) =>
+          variant.include("product", (product) =>
+            product.include("flashSale").include("specifications")
+          )
+        )
+      )
+      .first();
+
+    if (!cart || cart.items.length === 0) {
+      return { success: true, shippingCost: 0, isFree: false };
+    }
+
+    let subtotal = 0;
+    let totalWeightGrams = 0;
+
+    for (const item of cart.items) {
+      const variant = item.variant;
+      const product = variant?.product;
+      if (!variant || !product) continue;
+
+      const basePrice = variant.price ?? product.basePrice;
+      const { finalPrice } = getEffectivePrice(basePrice, product.discount, product.flashSale);
+      subtotal += finalPrice * item.quantity;
+
+      let itemWeightGrams = DEFAULT_ITEM_WEIGHT_GRAMS; // 2000g default
+      const specs = (product as any).specifications || [];
+      const weightSpec = specs.find((s: any) => s.name?.includes("وزن"));
+      if (weightSpec && weightSpec.value) {
+        const parsed = parseFloat(String(weightSpec.value).replace(/,/g, ".").replace(/[^\d.]/g, ""));
+        if (!isNaN(parsed) && parsed > 0) {
+          if (weightSpec.name.includes("کیلو") || parsed < 50) {
+            itemWeightGrams = Math.round(parsed * 1000);
+          } else {
+            itemWeightGrams = Math.round(parsed);
+          }
+        }
+      }
+      totalWeightGrams += itemWeightGrams * item.quantity;
+    }
+
+    const storeSettings = await getStoreSettings();
+    const result = calculateTapinShippingCost({
+      subtotalPrice: subtotal,
+      totalWeightGrams,
+      province: params.province,
+      city: params.city,
+      freeShippingEnabled: storeSettings.free_shipping_enabled,
+      freeShippingThreshold: storeSettings.free_shipping_threshold,
+    });
+
+    return {
+      success: true,
+      ...result,
+    };
+  } catch (error: any) {
+    console.error("calculateShippingFeeAction error:", error);
+    return {
+      success: false,
+      error: error?.message || "خطا در محاسبه هزینه ارسال",
+      shippingCost: 0,
+      isFree: false,
+    };
+  }
+}

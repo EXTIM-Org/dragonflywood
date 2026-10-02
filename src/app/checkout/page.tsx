@@ -1,7 +1,10 @@
 "use client";
 
+import { useActionState, useEffect, useState, useMemo } from "react";
+import { ProvinceCitySelect } from "@/components/ui/ProvinceCitySelect";
+import { calculateTapinShippingCost, DEFAULT_ITEM_WEIGHT_GRAMS } from "@/lib/tapin-rates";
+
 import { useCart } from "@/store/CartContext";
-import { useActionState, useEffect, useState } from "react";
 import { getUserCheckoutData, processCheckout } from "@/actions/checkout";
 import { getStoreSettings } from "@/actions/settings";
 import { useRouter } from "next/navigation";
@@ -38,9 +41,26 @@ export default function CheckoutPage() {
   const [state, formAction] = useActionState(processCheckout, null);
   const router = useRouter();
 
+  const [initialData, setInitialData] = useState<{receiverName: string, phone: string, address: string, postalCode: string, city: string, province: string, lat: number | null, lng: number | null} | null>(null);
   const [shippingThreshold, setShippingThreshold] = useState(2000000);
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const discountedSubtotal = Math.max(0, totalPrice - cartDiscount);
-  const shippingCost = discountedSubtotal > shippingThreshold ? 0 : 45000;
+
+  const shippingResult = useMemo(() => {
+    return calculateTapinShippingCost({
+      subtotalPrice: discountedSubtotal,
+      totalWeightGrams: totalItems * DEFAULT_ITEM_WEIGHT_GRAMS,
+      province: selectedProvince || initialData?.province || "",
+      city: selectedCity || initialData?.city || "",
+      freeShippingEnabled,
+      freeShippingThreshold: shippingThreshold,
+    });
+  }, [discountedSubtotal, totalItems, selectedProvince, selectedCity, initialData?.province, initialData?.city, freeShippingEnabled, shippingThreshold]);
+
+  const shippingCost = shippingResult.shippingCost;
+  const isFreeShipping = shippingResult.isFree;
 
   const [couponCode, setCouponCode] = useState("");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -50,8 +70,6 @@ export default function CheckoutPage() {
   const [couponSuccess, setCouponSuccess] = useState("");
 
   const finalPayable = Math.max(0, discountedSubtotal + (totalItems > 0 ? shippingCost : 0) - appliedDiscount);
-
-  const [initialData, setInitialData] = useState<{receiverName: string, phone: string, address: string, postalCode: string, city: string, province: string, lat: number | null, lng: number | null} | null>(null);
   const [isFetchingData, setIsFetchingData] = useState(true);
 
   // Fetch initial checkout data
@@ -65,6 +83,7 @@ export default function CheckoutPage() {
           if (data.lat && data.lng) setLocation({ lat: data.lat, lng: data.lng });
         }
         setShippingThreshold(settings.free_shipping_threshold);
+        setFreeShippingEnabled(Boolean(settings.free_shipping_enabled));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -230,29 +249,16 @@ export default function CheckoutPage() {
               <input type="hidden" name="lat" value={location?.lat || ""} />
               <input type="hidden" name="lng" value={location?.lng || ""} />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">استان</label>
-                  <input 
-                    type="text" 
-                    name="province"
-                    required
-                    defaultValue={initialData?.province || ""}
-                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                    placeholder="تهران"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">شهر</label>
-                  <input 
-                    type="text" 
-                    name="city"
-                    required
-                    defaultValue={initialData?.city || ""}
-                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                    placeholder="تهران"
-                  />
-                </div>
+              <div className="mb-4">
+                <ProvinceCitySelect
+                  initialProvince={initialData?.province || ""}
+                  initialCity={initialData?.city || ""}
+                  onLocationChange={(loc) => {
+                    setSelectedProvince(loc.province);
+                    setSelectedCity(loc.city);
+                  }}
+                  required
+                />
               </div>
 
               <div className="flex flex-col gap-2 mb-4">
@@ -357,8 +363,15 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span>هزینه بسته‌بندی و ارسال</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{shippingCost.toLocaleString('fa-IR')} تومان</span>
+                  <div className="flex flex-col">
+                    <span>هزینه بسته‌بندی و ارسال</span>
+                    <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                      پست پیشتاز تاپین (مبدا: شیراز {shippingResult.provinceTitle ? `← مقصد: ${shippingResult.provinceTitle}` : ''})
+                    </span>
+                  </div>
+                  <span className={`font-medium ${isFreeShipping ? "text-green-600 dark:text-green-400 font-bold" : "text-gray-900 dark:text-white"}`}>
+                    {isFreeShipping ? "رایگان" : `${shippingCost.toLocaleString('fa-IR')} تومان`}
+                  </span>
                 </div>
                 {appliedDiscount > 0 && (
                   <div className="flex justify-between items-center text-green-600 dark:text-green-400">
