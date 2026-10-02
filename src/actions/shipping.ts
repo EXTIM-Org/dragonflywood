@@ -148,21 +148,33 @@ export async function calculateShippingFeeAction(params: {
       const basePrice = variant.price ?? product.basePrice;
       const { finalPrice } = getEffectivePrice(basePrice, product.discount, product.flashSale);
       subtotal += finalPrice * item.quantity;
-
-      const weightRes = extractProductWeightGrams(product);
-      if (!weightRes.success) {
-        return {
-          success: false,
-          missingWeightProduct: product.name,
-          error: weightRes.error,
-          shippingCost: 0,
-          isFree: false,
-        };
-      }
-      totalWeightGrams += weightRes.weightGrams * item.quantity;
     }
 
     const storeSettings = await getStoreSettings();
+    const isFreeShipping = Boolean(storeSettings.free_shipping_enabled) && subtotal >= storeSettings.free_shipping_threshold;
+
+    for (const item of cart.items) {
+      const variant = item.variant;
+      const product = variant?.product;
+      if (!variant || !product) continue;
+
+      const weightRes = extractProductWeightGrams(product);
+      if (!weightRes.success) {
+        if (isFreeShipping) {
+          totalWeightGrams += DEFAULT_ITEM_WEIGHT_GRAMS * item.quantity;
+        } else {
+          return {
+            success: false,
+            missingWeightProduct: product.name,
+            error: weightRes.error,
+            shippingCost: 0,
+            isFree: false,
+          };
+        }
+      } else {
+        totalWeightGrams += weightRes.weightGrams * item.quantity;
+      }
+    }
     const result = calculateTapinShippingCost({
       subtotalPrice: subtotal,
       totalWeightGrams,

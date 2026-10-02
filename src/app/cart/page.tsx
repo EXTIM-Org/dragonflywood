@@ -68,7 +68,7 @@ export default function CartPage() {
 
   const isFreeShipping = freeShippingEnabled && (totalPrice - cartDiscount) >= shippingThreshold;
   const finalPayable = totalPrice - cartDiscount;
-  const missingWeightItem = items.find((item) => item.weightError != null);
+  const missingWeightItem = isFreeShipping ? null : items.find((item) => item.weightError != null);
 
   // Free Shipping Progress Calculation
   const progressPercent = freeShippingEnabled ? Math.min(100, Math.max(0, ((totalPrice - cartDiscount) / shippingThreshold) * 100)) : 0;

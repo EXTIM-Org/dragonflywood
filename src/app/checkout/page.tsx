@@ -61,13 +61,16 @@ export default function CheckoutPage() {
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const discountedSubtotal = Math.max(0, totalPrice - cartDiscount);
+  const isFreeShippingEligible = freeShippingEnabled && discountedSubtotal >= shippingThreshold;
 
   // Detect missing weight product from CartContext items or initialData
   const missingWeightItem = useMemo(() => {
     return items.find((item) => item.weightError != null);
   }, [items]);
 
-  const activeWeightError = missingWeightItem?.weightError || initialData?.missingWeightError || null;
+  // Missing weight only blocks checkout if the cart does NOT qualify for free shipping!
+  const rawWeightError = missingWeightItem?.weightError || initialData?.missingWeightError || null;
+  const activeWeightError = isFreeShippingEligible ? null : rawWeightError;
 
   const totalWeightGrams = useMemo(() => {
     if (items.length > 0 && items.every((i) => typeof i.weightGrams === "number")) {

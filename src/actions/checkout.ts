@@ -169,6 +169,7 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
     );
     const discountedSubtotal = Math.max(0, totalAmount - promotionDiscount);
     const storeSettings = await getStoreSettings();
+    const isFreeShipping = Boolean(storeSettings.free_shipping_enabled) && discountedSubtotal >= storeSettings.free_shipping_threshold;
 
     // Calculate total order weight based on products' specifications
     let totalWeightGrams = 0;
@@ -178,10 +179,16 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
 
       const weightRes = extractProductWeightGrams(product);
       if (!weightRes.success) {
-        log.warn({ productId: product.id, productName: product.name }, "Checkout blocked: missing product weight");
-        return { error: weightRes.error };
+        if (isFreeShipping) {
+          log.info({ productId: product.id, productName: product.name }, "Free shipping applied: using fallback weight for unweighted product");
+          totalWeightGrams += DEFAULT_ITEM_WEIGHT_GRAMS * cartItem.quantity;
+        } else {
+          log.warn({ productId: product.id, productName: product.name }, "Checkout blocked: missing product weight");
+          return { error: weightRes.error };
+        }
+      } else {
+        totalWeightGrams += weightRes.weightGrams * cartItem.quantity;
       }
-      totalWeightGrams += weightRes.weightGrams * cartItem.quantity;
     }
 
     const shippingResult = calculateTapinShippingCost({
