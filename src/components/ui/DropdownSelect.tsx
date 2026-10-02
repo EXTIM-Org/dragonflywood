@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, Search } from "lucide-react";
 
 export type DropdownOption = {
   value: string;
@@ -17,6 +17,7 @@ export type DropdownSelectProps = {
   variant?: "colored" | "neutral";
   disabled?: boolean;
   isLoading?: boolean;
+  searchable?: boolean;
   placeholder?: string;
   className?: string; // applied to the trigger button
   menuClassName?: string; // applied to the dropdown menu container
@@ -30,16 +31,29 @@ export function DropdownSelect({
   variant = "neutral",
   disabled = false,
   isLoading = false,
+  searchable = false,
   placeholder = "انتخاب کنید...",
   className = "",
   menuClassName = "",
   testIdPrefix
 }: DropdownSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [dropdownStyle, setDropdownStyle] = useState({ top: 0, left: 0, width: 0 });
   const [position, setPosition] = useState<"bottom" | "top">("bottom");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchTerm("");
+    } else if (searchable) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [isOpen, searchable]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -96,6 +110,10 @@ export function DropdownSelect({
 
   const selectedOption = options.find(o => o.value === value);
 
+  const filteredOptions = searchable && searchTerm.trim()
+    ? options.filter(opt => opt.label.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+    : options;
+
   // Trigger button styling based on variant
   const baseTriggerClasses = "w-full flex items-center justify-between border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50";
   let triggerClasses = "";
@@ -141,23 +159,44 @@ export function DropdownSelect({
             position === "top" ? "-translate-y-full origin-bottom animate-in fade-in zoom-in-95" : "origin-top animate-in fade-in zoom-in-95"
           } ${menuClassName}`}
         >
+          {searchable && (
+            <div className="relative mb-2 px-1">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="جستجو در گزینه‌ها..."
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-8 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-violet-500"
+              />
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+
           <div className="flex flex-col gap-1">
-            {options.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handleSelect(opt.value)}
-                data-testid={testIdPrefix ? `${testIdPrefix}-option-${opt.value}` : undefined}
-                className={`flex items-center justify-between whitespace-nowrap w-full px-3 py-2.5 text-sm font-medium transition-all rounded-lg ${
-                  value === opt.value 
-                    ? "bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400" 
-                    : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
-                }`}
-              >
-                {opt.label}
-                {value === opt.value && <Check className="w-4 h-4 text-violet-500" />}
-              </button>
-            ))}
+            {filteredOptions.length === 0 ? (
+              <div className="p-3 text-center text-xs text-gray-400">
+                موردی یافت نشد
+              </div>
+            ) : (
+              filteredOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleSelect(opt.value)}
+                  data-testid={testIdPrefix ? `${testIdPrefix}-option-${opt.value}` : undefined}
+                  className={`flex items-center justify-between whitespace-nowrap w-full px-3 py-2 text-sm font-medium transition-all rounded-lg ${
+                    value === opt.value 
+                      ? "bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400" 
+                      : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
+                  }`}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {value === opt.value && <Check className="w-4 h-4 text-violet-500 flex-shrink-0" />}
+                </button>
+              ))
+            )}
           </div>
         </div>,
         document.body

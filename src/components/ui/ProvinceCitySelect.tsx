@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getProvinceList, getCitiesByProvince, findProvince, findCity, CityInfo } from "@/lib/tapin-rates";
+import { DropdownSelect } from "@/components/ui/DropdownSelect";
 
 interface ProvinceCitySelectProps {
   initialProvince?: string;
@@ -105,6 +106,16 @@ export function ProvinceCitySelect({
   const selectedProvinceTitle = provinces.find((p) => p.id === selectedProvinceId)?.title || "";
   const selectedCityTitle = cities.find((c) => c.id === selectedCityId)?.title || "";
 
+  const provinceOptions = provinces.map((p) => ({
+    value: String(p.id),
+    label: p.title,
+  }));
+
+  const cityOptions = cities.map((c) => ({
+    value: c.id,
+    label: c.title,
+  }));
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Hidden inputs to feed formData correctly */}
@@ -115,43 +126,29 @@ export function ProvinceCitySelect({
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           استان {required && <span className="text-red-500">*</span>}
         </label>
-        <select
-          value={selectedProvinceId}
-          onChange={(e) => handleProvinceChange(e.target.value)}
-          required={required}
-          className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all cursor-pointer"
-        >
-          <option value="" disabled>
-            انتخاب استان...
-          </option>
-          {provinces.map((prov) => (
-            <option key={prov.id} value={prov.id} className="text-gray-900 dark:text-white bg-white dark:bg-gray-900">
-              {prov.title}
-            </option>
-          ))}
-        </select>
+        <DropdownSelect
+          options={provinceOptions}
+          value={selectedProvinceId ? String(selectedProvinceId) : ""}
+          onChange={handleProvinceChange}
+          searchable={true}
+          placeholder="انتخاب استان..."
+          className="bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/10 rounded-xl"
+        />
       </div>
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           شهر {required && <span className="text-red-500">*</span>}
         </label>
-        <select
+        <DropdownSelect
+          options={cityOptions}
           value={selectedCityId}
-          onChange={(e) => handleCityChange(e.target.value)}
+          onChange={handleCityChange}
+          searchable={true}
           disabled={!selectedProvinceId}
-          required={required}
-          className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all cursor-pointer disabled:opacity-50"
-        >
-          <option value="" disabled>
-            {selectedProvinceId ? "انتخاب شهر..." : "ابتدا استان را انتخاب کنید"}
-          </option>
-          {cities.map((city) => (
-            <option key={city.id} value={city.id} className="text-gray-900 dark:text-white bg-white dark:bg-gray-900">
-              {city.title}
-            </option>
-          ))}
-        </select>
+          placeholder={selectedProvinceId ? "انتخاب شهر..." : "ابتدا استان را انتخاب کنید"}
+          className="bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/10 rounded-xl"
+        />
       </div>
     </div>
   );
