@@ -98,7 +98,12 @@ export interface ShippingCalculationResult {
   baseCostTomans: number;
   insuranceTomans: number;
   taxTomans: number;
+  postageCostTomans?: number;
+  packagingCostTomans?: number;
 }
+
+// Packaging and handling fee added to postage (in Tomans)
+export const DEFAULT_PACKAGING_FEE_TOMANS = 60000;
 
 // Origin: Shiraz, Fars
 export const ORIGIN_PROVINCE_ID = 5;
@@ -249,6 +254,8 @@ export function calculateTapinShippingCost(params: ShippingCalculationParams): S
       baseCostTomans: 0,
       insuranceTomans: 0,
       taxTomans: 0,
+      postageCostTomans: 0,
+      packagingCostTomans: 0,
     };
   }
 
@@ -314,10 +321,14 @@ export function calculateTapinShippingCost(params: ShippingCalculationParams): S
   totalRials += taxRials;
 
   // 9. Convert to Tomans and round up to next 1,000 Tomans
-  const finalTomans = Math.ceil(totalRials / 10000) * 1000;
+  const postageTomans = Math.ceil(totalRials / 10000) * 1000;
+
+  // 10. Packaging & handling fee (added after postage calculation: +60,000 Tomans)
+  const packagingFeeTomans = DEFAULT_PACKAGING_FEE_TOMANS;
+  const finalShippingCost = postageTomans + packagingFeeTomans;
 
   return {
-    shippingCost: finalTomans,
+    shippingCost: finalShippingCost,
     isFree: false,
     weightGrams: weight,
     weightIndex,
@@ -329,5 +340,7 @@ export function calculateTapinShippingCost(params: ShippingCalculationParams): S
     baseCostTomans: Math.round(baseCostRials / 10),
     insuranceTomans: Math.round(insuranceRials / 10),
     taxTomans: Math.round(taxRials / 10),
+    postageCostTomans: postageTomans,
+    packagingCostTomans: packagingFeeTomans,
   };
 }
