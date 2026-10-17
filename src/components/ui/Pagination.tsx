@@ -86,7 +86,7 @@ const PageWrapper = ({ page, children, active, disabled, buildHrefPattern, onPag
 
   if (buildHrefPattern) {
     return (
-      <Link href={buildHrefPattern.replace('__PAGE__', page.toString())} className={`${baseClasses} ${activeClasses} ${sizeClasses}`}>
+      <Link prefetch={false} href={buildHrefPattern.replace('__PAGE__', page.toString())} className={`${baseClasses} ${activeClasses} ${sizeClasses}`}>
         {children}
       </Link>
     );

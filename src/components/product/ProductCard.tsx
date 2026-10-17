@@ -32,7 +32,7 @@ export function ProductCard({ product, initialIsLiked = false }: ProductCardProp
   const isLowStock = !isOutOfStock && totalStock > 0 && totalStock <= 5;
   
   return (
-    <Link href={`/products/${product.slug}`} className="group block">
+    <Link href={`/products/${product.slug}`} prefetch={false} className="group block">
       <div className={`relative overflow-hidden rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(147,51,234,0.1)] dark:hover:shadow-[0_0_30px_rgba(147,51,234,0.3)] shadow-sm dark:shadow-none ${isOutOfStock ? "opacity-75 grayscale-[30%]" : ""}`}>
         
         {/* Wishlist Button */}
