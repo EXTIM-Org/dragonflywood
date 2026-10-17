@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { getPopularProducts, getSpecialOffers, getNewArrivals, getFlashSales } from "@/lib/recommender";
 import { getSession } from "@/lib/session";
 import { db } from "@/prisma/db";
@@ -31,8 +32,32 @@ export default async function Home() {
       <div className="absolute top-1/4 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-violet-600/10 dark:bg-violet-600/20 rounded-full blur-[100px] sm:blur-[120px] -z-10 animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-fuchsia-600/10 dark:bg-fuchsia-600/20 rounded-full blur-[100px] sm:blur-[120px] -z-10 animate-pulse" style={{ animationDelay: '2s' }} />
 
-      <div className="container mx-auto px-4 text-center z-10 flex flex-col items-center gap-6 sm:gap-8 py-12 sm:py-20">
+      <div className="container mx-auto px-4 text-center z-10 flex flex-col items-center gap-6 sm:gap-8 py-8 sm:py-12">
         
+        {/* Main Hero Banner */}
+        <div className="w-full max-w-6xl">
+          <Link 
+            href="/products" 
+            className="group block relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-black/5 dark:border-white/10"
+            title="مشاهده محصولات گالری سنجاقک"
+          >
+            <picture>
+              <source media="(max-width: 640px)" srcSet="/banners/hero-banner-mobile.webp" type="image/webp" />
+              <source srcSet="/banners/hero-banner.webp" type="image/webp" />
+              <Image
+                src="/banners/hero-banner.webp"
+                alt="گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر"
+                width={1024}
+                height={384}
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 95vw, 1200px"
+                className="w-full h-auto object-cover transform group-hover:scale-[1.015] transition-transform duration-500"
+              />
+            </picture>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          </Link>
+        </div>
+
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 text-violet-700 dark:text-violet-300 text-sm font-medium border border-violet-500/20 shadow-sm backdrop-blur-sm">
           <span className="relative flex h-2 w-2">
