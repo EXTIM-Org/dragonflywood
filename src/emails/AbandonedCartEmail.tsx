@@ -32,7 +32,7 @@ interface AbandonedCartEmailProps {
 export const AbandonedCartEmail = ({
   customerName = "مشتری عزیز",
   items = [],
-  checkoutUrl = "https://extim.com/checkout",
+  checkoutUrl = "https://dragonflywood.ir/checkout",
   discountCode,
   discountPercent,
 }: AbandonedCartEmailProps) => {
@@ -66,7 +66,7 @@ export const AbandonedCartEmail = ({
                     <Column className="w-[80px]">
                       {item.image && (
                         <Img
-                          src={item.image.startsWith('http') ? item.image : `https://extim.com${item.image}`}
+                          src={item.image.startsWith('http') ? item.image : `https://dragonflywood.ir${item.image}`}
                           alt={item.name}
                           width="70"
                           height="70"

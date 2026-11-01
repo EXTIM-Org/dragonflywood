@@ -8,17 +8,30 @@ import "./globals.css";
 
 import { Footer } from "@/components/layout/Footer";
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dragonflywood.ir";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(baseUrl),
   title: {
     template: "%s | گالری چوب سنجاقک",
     default: "گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر",
   },
   description: "خرید آنلاین انواع ظروف، دکوراسیون و دست‌سازه‌های چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     title: "گالری چوب سنجاقک | صنایع دستی و سازه‌های چوبی فاخر",
     description: "خرید آنلاین انواع ظروف، دکوراسیون و دست‌سازه‌های چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    url: baseUrl,
     siteName: "گالری چوب سنجاقک",
     images: [
       {

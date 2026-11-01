@@ -9,17 +9,48 @@ import rehypeSanitize from "rehype-sanitize";
 
 export const dynamic = 'force-dynamic';
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dragonflywood.ir';
+
+function toAbsoluteUrl(url: string | null | undefined): string {
+  if (!url) return `${baseUrl}/og-image.jpg`;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   const article = await getArticleBySlug(decodedSlug);
   if (!article) return { title: "مقاله یافت نشد" };
   
+  const coverUrl = toAbsoluteUrl(article.coverImage);
+  const articleUrl = `${baseUrl}/blog/${article.slug}`;
+
   return {
     title: `${article.title} | مجله گالری چوب سنجاقک`,
     description: article.excerpt || article.title,
+    alternates: {
+      canonical: articleUrl,
+    },
     openGraph: {
-      images: article.coverImage ? [article.coverImage] : [],
+      title: `${article.title} | مجله گالری چوب سنجاقک`,
+      description: article.excerpt || article.title,
+      url: articleUrl,
+      siteName: "گالری چوب سنجاقک",
+      locale: "fa_IR",
+      type: "article",
+      images: [
+        {
+          url: coverUrl,
+          alt: article.title,
+        }
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${article.title} | مجله گالری چوب سنجاقک`,
+      description: article.excerpt || article.title,
+      images: [coverUrl],
     },
   };
 }
@@ -36,20 +67,37 @@ export default async function SingleArticlePage({ params }: { params: Promise<{ 
   // Increment view count asynchronously
   incrementArticleView(article.id).catch(console.error);
 
+  const coverUrl = article.coverImage ? toAbsoluteUrl(article.coverImage) : undefined;
+  const articleUrl = `${baseUrl}/blog/${article.slug}`;
+
   // Generate JSON-LD
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
+    '@id': `${articleUrl}#article`,
+    'mainEntityOfPage': {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+    },
     'headline': article.title,
     'description': article.excerpt || undefined,
-    'image': article.coverImage ? [article.coverImage] : undefined,
+    'image': coverUrl ? [coverUrl] : undefined,
     'datePublished': article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined,
     'dateModified': article.updatedAt ? new Date(article.updatedAt).toISOString() : undefined,
     'author': [{
       '@type': 'Person',
       'name': article.author?.name || 'گالری چوب سنجاقک',
-      'url': 'https://extim.com/about'
-    }]
+      'url': `${baseUrl}/about`
+    }],
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'گالری چوب سنجاقک',
+      'url': baseUrl,
+      'logo': {
+        '@type': 'ImageObject',
+        'url': `${baseUrl}/og-image.jpg`
+      }
+    }
   };
 
   return (

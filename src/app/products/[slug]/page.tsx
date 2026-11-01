@@ -12,6 +12,15 @@ import { ReviewItem } from "@/components/product/ReviewItem";
 import { getEffectivePrice } from "@/lib/price";
 import { RecentlyViewedTracker } from "@/components/product/RecentlyViewedTracker";
 import { RecentlyViewedCarousel } from "@/components/product/RecentlyViewedCarousel";
+import { canManageStore } from "@/lib/permissions";
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dragonflywood.ir";
+
+function toAbsoluteUrl(url: string | null | undefined): string {
+  if (!url) return `${baseUrl}/og-image.jpg`;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -22,13 +31,42 @@ export async function generateMetadata({ params }: PageProps) {
   const decodedSlug = decodeURIComponent(slug);
   const product = await db.orm.public.Product.where({ slug: decodedSlug }).first();
   
-  if (!product) {
+  const session = await getSession();
+  const isAdmin = session && canManageStore(session.role as string);
+  
+  if (!product || (!product.isActive && !isAdmin)) {
     return { title: 'محصول یافت نشد' };
   }
+
+  const productUrl = `${baseUrl}/products/${product.slug}`;
+  const rawImages = (product.images && product.images.length > 0) ? product.images : [];
+  const absoluteImages = rawImages.length > 0 ? rawImages.map(toAbsoluteUrl) : [`${baseUrl}/og-image.jpg`];
+  const description = product.description || `خرید ${product.name} با بالاترین کیفیت و ضمانت اصالت چوب طبیعی از گالری چوب سنجاقک`;
   
   return {
     title: `${product.name} | گالری چوب سنجاقک`,
-    description: product.description,
+    description,
+    alternates: {
+      canonical: productUrl,
+    },
+    openGraph: {
+      title: `${product.name} | گالری چوب سنجاقک`,
+      description,
+      url: productUrl,
+      siteName: "گالری چوب سنجاقک",
+      locale: "fa_IR",
+      type: "website",
+      images: absoluteImages.map((imgUrl: string) => ({
+        url: imgUrl,
+        alt: product.name,
+      })),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | گالری چوب سنجاقک`,
+      description,
+      images: absoluteImages,
+    },
   };
 }
 
@@ -45,7 +83,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
     .include('flashSale')
     .first();
 
-  if (!product) {
+  const session = await getSession();
+  const isAdmin = session && canManageStore(session.role as string);
+
+  if (!product || (!product.isActive && !isAdmin)) {
     notFound();
   }
 
@@ -59,7 +100,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const boughtTogetherProducts = await getFrequentlyBoughtTogether(product.id, 8);
 
   // Fetch Wishlist
-  const session = await getSession();
   let userWishlistProductIds = new Set<string>();
   
   if (session?.userId) {
@@ -84,6 +124,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
   if (product.variants && product.variants.length > 0) {
     inStock = product.variants.some((v: any) => v.inventory && v.inventory.quantity > 0);
   }
+
+  const productUrl = `${baseUrl}/products/${product.slug}`;
+  const rawImages = (product.images && product.images.length > 0) ? product.images : [];
+  const absoluteImages = rawImages.length > 0 ? rawImages.map(toAbsoluteUrl) : [`${baseUrl}/og-image.jpg`];
 
   // 1. Calculate Aggregate Rating & Reviews Schema
   let aggregateRating = undefined;
@@ -125,7 +169,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     if (questionsWithAnswers.length > 0) {
       faqSchema = {
         '@type': 'FAQPage',
-        '@id': `https://extim.com/products/${product.slug}#faq`,
+        '@id': `${productUrl}#faq`,
         'mainEntity': questionsWithAnswers.map((q: any) => ({
           '@type': 'Question',
           'name': q.text,
@@ -141,25 +185,25 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // 3. BreadcrumbList Schema
   const breadcrumbSchema = {
     '@type': 'BreadcrumbList',
-    '@id': `https://extim.com/products/${product.slug}#breadcrumb`,
+    '@id': `${productUrl}#breadcrumb`,
     'itemListElement': [
       {
         '@type': 'ListItem',
         'position': 1,
         'name': 'گالری چوب سنجاقک',
-        'item': 'https://extim.com/'
+        'item': `${baseUrl}/`
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': product.category?.name || 'محصولات',
-        'item': `https://extim.com/categories/${product.category?.slug || 'all'}`
+        'item': `${baseUrl}/products?category=${product.category?.slug || 'all'}`
       },
       {
         '@type': 'ListItem',
         'position': 3,
         'name': product.name,
-        'item': `https://extim.com/products/${product.slug}`
+        'item': productUrl
       }
     ]
   };
@@ -167,18 +211,19 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // 4. Product Schema
   const productSchema = {
     '@type': 'Product',
-    '@id': `https://extim.com/products/${product.slug}#product`,
+    '@id': `${productUrl}#product`,
     'name': product.name,
     'description': product.description || undefined,
-    'image': product.images,
-    'sku': (product.variants && product.variants.length > 0) ? product.variants[0].sku : product.id,
+    'image': absoluteImages,
+    'sku': (product.variants && product.variants.length > 0 && product.variants[0].sku) ? product.variants[0].sku : product.id,
+    'category': product.category?.name || 'صنایع دستی چوبی',
     'brand': {
       '@type': 'Brand',
       'name': 'گالری چوب سنجاقک'
     },
     'offers': {
       '@type': 'Offer',
-      'url': `https://extim.com/products/${product.slug}`,
+      'url': productUrl,
       'priceCurrency': 'IRR',
       'price': finalPrice,
       'priceValidUntil': product.flashSale 
@@ -186,6 +231,46 @@ export default async function ProductDetailPage({ params }: PageProps) {
         : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
       'availability': inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       'itemCondition': 'https://schema.org/NewCondition',
+      'seller': {
+        '@type': 'Organization',
+        'name': 'گالری چوب سنجاقک',
+        'url': baseUrl
+      },
+      'hasMerchantReturnPolicy': {
+        '@type': 'MerchantReturnPolicy',
+        'applicableCountry': 'IR',
+        'returnPolicyCategory': 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        'merchantReturnDays': 7,
+        'returnMethod': 'https://schema.org/ReturnByMail',
+        'returnFees': 'https://schema.org/FreeReturn'
+      },
+      'shippingDetails': {
+        '@type': 'OfferShippingDetails',
+        'shippingRate': {
+          '@type': 'MonetaryAmount',
+          'value': 60000,
+          'currency': 'IRR'
+        },
+        'shippingDestination': {
+          '@type': 'DefinedRegion',
+          'addressCountry': 'IR'
+        },
+        'deliveryTime': {
+          '@type': 'ShippingDeliveryTime',
+          'handlingTime': {
+            '@type': 'QuantitativeValue',
+            'minValue': 1,
+            'maxValue': 2,
+            'unitCode': 'DAY'
+          },
+          'transitTime': {
+            '@type': 'QuantitativeValue',
+            'minValue': 2,
+            'maxValue': 4,
+            'unitCode': 'DAY'
+          }
+        }
+      }
     },
     ...(aggregateRating && { aggregateRating }),
     ...(reviewsSchema && { review: reviewsSchema }),
@@ -207,6 +292,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      {!product.isActive && (
+        <div className="max-w-7xl mx-auto mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-sm font-medium text-center">
+          ⚠️ این محصول غیرفعال است و برای مشتریان سایت نمایش داده نمی‌شود (شما به عنوان مدیر این صفحه را مشاهده می‌کنید).
+        </div>
+      )}
       
       {/* Track Recently Viewed */}
       <RecentlyViewedTracker productId={product.id} />

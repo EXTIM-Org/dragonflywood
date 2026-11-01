@@ -3,12 +3,18 @@ import { db } from '@/prisma/db';
 
 export const revalidate = 3600; // Revalidate every hour
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dragonflywood.ir';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dragonflywood.ir';
 
+function toAbsoluteUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    // Fetch all products
-    const products = await db.orm.public.Product.orderBy((p) => p.updatedAt.desc()).all();
+    // Fetch all active products
+    const products = await db.orm.public.Product.where((p) => p.isActive.eq(true)).orderBy((p) => p.updatedAt.desc()).all();
     
     // Fetch all categories
     const categories = await db.orm.public.Category.orderBy((c) => c.updatedAt.desc()).all();
@@ -16,26 +22,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all published articles
     const articles = await db.orm.public.Article.where({ status: "PUBLISHED" }).orderBy((a) => a.updatedAt.desc()).all();
 
-    const productUrls: MetadataRoute.Sitemap = products.map((product) => ({
-      url: `${baseUrl}/products/${product.slug}`,
-      lastModified: new Date(product.updatedAt),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    }));
+    const productUrls: MetadataRoute.Sitemap = products.map((product) => {
+      const productImages = (product.images || [])
+        .map(toAbsoluteUrl)
+        .filter((url): url is string => Boolean(url));
+
+      return {
+        url: `${baseUrl}/products/${product.slug}`,
+        lastModified: new Date(product.updatedAt),
+        changeFrequency: 'daily' as const,
+        priority: 0.9,
+        images: productImages.length > 0 ? productImages : undefined,
+      };
+    });
 
     const categoryUrls: MetadataRoute.Sitemap = categories.map((category) => ({
       url: `${baseUrl}/products?category=${category.slug}`,
       lastModified: new Date(category.updatedAt),
-      changeFrequency: 'weekly',
-      priority: 0.7,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
     }));
 
-    const articleUrls: MetadataRoute.Sitemap = articles.map((article) => ({
-      url: `${baseUrl}/blog/${article.slug}`,
-      lastModified: new Date(article.updatedAt),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    }));
+    const articleUrls: MetadataRoute.Sitemap = articles.map((article) => {
+      const coverUrl = toAbsoluteUrl(article.coverImage);
+      return {
+        url: `${baseUrl}/blog/${article.slug}`,
+        lastModified: new Date(article.updatedAt),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+        images: coverUrl ? [coverUrl] : undefined,
+      };
+    });
 
     const staticRoutes: MetadataRoute.Sitemap = [
       {
@@ -148,4 +165,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   }
 }
-

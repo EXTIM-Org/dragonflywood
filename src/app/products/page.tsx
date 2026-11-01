@@ -4,9 +4,42 @@ import { ProductFilters } from '@/components/product/ProductFilters';
 import { Pagination } from '@/components/ui/Pagination';
 import { getSession } from '@/lib/session';
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dragonflywood.ir';
+
+function toAbsoluteUrl(url: string | null | undefined): string {
+  if (!url) return `${baseUrl}/og-image.jpg`;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export const metadata = {
-  title: 'محصولات فروشگاه',
-  description: 'لیست جدیدترین محصولات و کالاهای دیجیتال و پوشاک',
+  title: 'محصولات دست‌ساز چوبی',
+  description: 'مشاهده و خرید آنلاین انواع دست‌سازه‌ها، ظروف، زیورآلات و دکوراسیون چوبی نفیس با اصالت چوب طبیعی از گالری چوب سنجاقک',
+  alternates: {
+    canonical: `${baseUrl}/products`,
+  },
+  openGraph: {
+    title: 'محصولات دست‌ساز چوبی | گالری چوب سنجاقک',
+    description: 'مشاهده و خرید آنلاین انواع دست‌سازه‌ها، ظروف، زیورآلات و دکوراسیون چوبی نفیس از گالری چوب سنجاقک',
+    url: `${baseUrl}/products`,
+    siteName: 'گالری چوب سنجاقک',
+    locale: 'fa_IR',
+    type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'محصولات گالری چوب سنجاقک',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'محصولات دست‌ساز چوبی | گالری چوب سنجاقک',
+    description: 'مشاهده و خرید آنلاین انواع دست‌سازه‌ها، ظروف، زیورآلات و دکوراسیون چوبی نفیس از گالری چوب سنجاقک',
+    images: [`${baseUrl}/og-image.jpg`],
+  },
 };
 
 interface PageProps {
@@ -29,8 +62,10 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   // Fetch categories for the filter sidebar
   const categories = await db.orm.public.Category.select("id", "name", "slug").all();
 
-  // Build the dynamic query
-  let query = db.orm.public.Product.include("variants", (v) => v.include("inventory"));
+  // Build the dynamic query (only active products for customers)
+  let query = db.orm.public.Product
+    .where((p) => p.isActive.eq(true))
+    .include("variants", (v) => v.include("inventory"));
 
   if (q) {
     query = query.where((p) => p.name.ilike(`%${q}%`));
@@ -84,26 +119,36 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     }
   }
 
-  // Generate JSON-LD Schema for SEO
+  // Generate JSON-LD Schema for SEO with absolute URLs
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'itemListElement': products.map((product, index) => ({
-      '@type': 'ListItem',
-      'position': offset + index + 1,
-      'item': {
-        '@type': 'Product',
-        'name': product.name,
-        'description': product.description || undefined,
-        'image': product.images,
-        'offers': {
-          '@type': 'Offer',
-          'price': product.basePrice - product.discount,
-          'priceCurrency': 'IRR',
-          'availability': 'https://schema.org/InStock',
-        },
-      }
-    }))
+    'itemListElement': products.map((product, index) => {
+      const prodImages = (product.images && product.images.length > 0)
+        ? product.images.map(toAbsoluteUrl)
+        : [`${baseUrl}/og-image.jpg`];
+      const prodUrl = `${baseUrl}/products/${product.slug}`;
+
+      return {
+        '@type': 'ListItem',
+        'position': offset + index + 1,
+        'item': {
+          '@type': 'Product',
+          '@id': `${prodUrl}#product`,
+          'name': product.name,
+          'url': prodUrl,
+          'description': product.description || undefined,
+          'image': prodImages,
+          'offers': {
+            '@type': 'Offer',
+            'url': prodUrl,
+            'price': product.basePrice - product.discount,
+            'priceCurrency': 'IRR',
+            'availability': 'https://schema.org/InStock',
+          },
+        }
+      };
+    })
   };
 
   const queryParams = new URLSearchParams();
@@ -129,7 +174,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             همه محصولات
           </h1>
           <p className="mt-4 text-gray-600 dark:text-gray-400">
-            جدیدترین کالاهای موجود را با بهترین قیمت کشف کنید
+            جدیدترین سازه‌های دست‌ساز و زیورآلات چوبی را با ضمانت کیفیت کشف کنید
           </p>
         </div>
 
