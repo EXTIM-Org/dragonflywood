@@ -107,6 +107,7 @@ model Product {
   basePrice     Float     // The base/display price of the product
   discount      Float     @default(0) // Discount percentage or amount
   images        String[]  // Array of image URLs
+  isActive      Boolean   @default(true)
   
   variants      ProductVariant[]
   reviews       Review[]

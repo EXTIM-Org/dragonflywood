@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'62145dd3f42378fd25cfa19bfcd2e27c4c429fba58e56673a35e7e28e0baaea4'>;
+  StorageHashBase<'25b11b8a61544f3a58ffc45a458787a057d6d4e1f0ebc3992c286bfe92376189'>;
 export type ExecutionHash =
   ExecutionHashBase<'89f13773599993363fc7df48dad9a136815fe9aa4a797d7abafbf59634ea8672'>;
 export type ProfileHash =
@@ -395,6 +395,7 @@ export type FieldOutputTypes = {
       readonly basePrice: CodecTypes['pg/float8@1']['output'];
       readonly discount: CodecTypes['pg/float8@1']['output'];
       readonly images: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+      readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly viewCount: CodecTypes['pg/int4@1']['output'];
       readonly salesCount: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -685,6 +686,7 @@ export type FieldInputTypes = {
       readonly basePrice: CodecTypes['pg/float8@1']['input'];
       readonly discount: CodecTypes['pg/float8@1']['input'];
       readonly images: ReadonlyArray<CodecTypes['pg/text@1']['input']>;
+      readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly viewCount: CodecTypes['pg/int4@1']['input'];
       readonly salesCount: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -974,6 +976,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly images: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
       readonly introduction: CodecTypes['pg/text@1']['output'] | null;
+      readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly salesCount: CodecTypes['pg/int4@1']['output'];
       readonly slug: CodecTypes['pg/text@1']['output'];
@@ -1264,6 +1267,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly images: ReadonlyArray<CodecTypes['pg/text@1']['input']>;
       readonly introduction: CodecTypes['pg/text@1']['input'] | null;
+      readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly salesCount: CodecTypes['pg/int4@1']['input'];
       readonly slug: CodecTypes['pg/text@1']['input'];
@@ -1507,6 +1511,7 @@ export namespace Models {
     basePrice: CodecTypes['pg/float8@1']['output'];
     discount: CodecTypes['pg/float8@1']['output'];
     images: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+    isActive: CodecTypes['pg/bool@1']['output'];
     viewCount: CodecTypes['pg/int4@1']['output'];
     salesCount: CodecTypes['pg/int4@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -2965,6 +2970,15 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                };
+                readonly isActive: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
                 };
                 readonly viewCount: {
                   readonly nativeType: 'int4';
@@ -5357,6 +5371,10 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
                 readonly many: true;
               };
+              readonly isActive: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
               readonly viewCount: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -5485,6 +5503,7 @@ type ContractBase = Omit<
                 readonly basePrice: { readonly column: 'basePrice' };
                 readonly discount: { readonly column: 'discount' };
                 readonly images: { readonly column: 'images' };
+                readonly isActive: { readonly column: 'isActive' };
                 readonly viewCount: { readonly column: 'viewCount' };
                 readonly salesCount: { readonly column: 'salesCount' };
                 readonly createdAt: { readonly column: 'createdAt' };

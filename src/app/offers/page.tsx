@@ -10,8 +10,9 @@ export const metadata = {
 export default async function OffersPage() {
   const now = new Date().toISOString();
 
-  // Fetch products with direct discount > 0
+  // Fetch products with direct discount > 0 (active products only)
   const discountedProducts = await db.orm.public.Product
+    .where((p) => p.isActive.eq(true))
     .where((p) => p.discount.gt(0))
     .include("variants", (v) => v.include("inventory"))
     .include("flashSale")
@@ -31,7 +32,7 @@ export default async function OffersPage() {
     productsMap.set(p.id, p);
   }
   for (const f of activeFlashSales) {
-    if (f.product) {
+    if (f.product && f.product.isActive !== false) {
       productsMap.set(f.productId, f.product);
     }
   }

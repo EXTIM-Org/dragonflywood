@@ -3,6 +3,7 @@ set -e
 
 cd /home/hach/E-Commerce
 export PATH="/opt/node-v22.23.3-linux-x64/bin:$PATH"
+export NODE_OPTIONS="--max-old-space-size=1536"
 
 # Unlink public/uploads symlink so Turbopack doesn't panic on external symlinks
 if [ -L public/uploads ]; then

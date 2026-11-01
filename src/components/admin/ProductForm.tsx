@@ -30,6 +30,7 @@ export function ProductForm({
   const [basePrice, setBasePrice] = useState(product?.basePrice?.toString() || "");
   const [discount, setDiscount] = useState(product?.discount?.toString() || "0");
   const [introduction, setIntroduction] = useState(product?.introduction || "");
+  const [isActive, setIsActive] = useState<boolean>(product?.isActive ?? true);
   
   const parsedBasePrice = parseFloat(p2e(basePrice)) || 0;
   const parsedDiscount = parseFloat(p2e(discount)) || 0;
@@ -339,6 +340,9 @@ export function ProductForm({
         value={JSON.stringify(specifications)}
       />
 
+      {/* Hidden input for active status */}
+      <input type="hidden" name="isActive" value={isActive ? "true" : "false"} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-4">
           <div>
@@ -414,6 +418,28 @@ export function ProductForm({
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Active Status Checkbox */}
+          <div className="pt-2">
+            <label className="flex items-center gap-3 p-3.5 bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl cursor-pointer hover:border-violet-500/50 transition-all select-none">
+              <input
+                type="checkbox"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="w-5 h-5 text-violet-600 bg-white/50 dark:bg-black/50 border-black/20 dark:border-white/20 rounded-md focus:ring-violet-500 cursor-pointer"
+              />
+              <div className="flex-1">
+                <span className="block text-sm font-semibold text-gray-900 dark:text-white">
+                  وضعیت محصول: {isActive ? <span className="text-emerald-600 dark:text-emerald-400 font-bold">فعال</span> : <span className="text-rose-600 dark:text-rose-400 font-bold">غیرفعال</span>}
+                </span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {isActive
+                    ? "این محصول فعال است و در ویترین و جستجوی فروشگاه نمایش داده می‌شود."
+                    : "این محصول غیرفعال است و از دید مشتریان در سایت مخفی شده است."}
+                </span>
+              </div>
+            </label>
           </div>
 
         </div>

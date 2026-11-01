@@ -147,13 +147,14 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
                 <th className="px-6 py-4 font-medium">
                   <SortableHeader label="فروش" field="salesCount" currentSort={sort} currentOrder={order} searchParams={searchParams} />
                 </th>
+                <th className="px-6 py-4 font-medium text-center">وضعیت</th>
                 <th className="px-6 py-4 font-medium text-center">عملیات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
                     هیچ محصولی یافت نشد.
                   </td>
                 </tr>
@@ -191,6 +192,19 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
                       {e2p(product.variants?.reduce((acc: number, v: any) => acc + (v.inventory?.stockQuantity || 0), 0) || 0)} عدد
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{e2p(product.salesCount)}</td>
+                    <td className="px-6 py-4 text-center">
+                      {product.isActive !== false ? (
+                        <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          فعال
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                          غیرفعال
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-3">
                         <Link href={`/admin/products/${product.id}/edit`} className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors" title="ویرایش">

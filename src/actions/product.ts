@@ -118,6 +118,8 @@ export async function createProduct(prevState: unknown, formData: FormData) {
 
     const basePrice = parseFloat(p2e(basePriceStr));
     const discount = parseFloat(p2e(discountStr) || "0");
+    const isActiveRaw = formData.get("isActive");
+    const isActive = isActiveRaw === "true" || isActiveRaw === "on" || isActiveRaw === "1" || isActiveRaw === null;
     
     // Generate slug from name (support Persian via unicode property escapes)
     let slug = name.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, "-");
@@ -171,6 +173,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       discount,
       categoryId,
       images: finalImages,
+      isActive,
     });
 
     // Handle variants
@@ -229,7 +232,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       action: 'CREATE',
       entity: 'Product',
       entityId: product.id,
-      description: `ایجاد محصول جدید با نام "${name}"`
+      description: `ایجاد محصول جدید با نام "${name}" (وضعیت: ${isActive ? 'فعال' : 'غیرفعال'})`
     });
 
   } catch (error) {
@@ -282,6 +285,8 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
 
     const basePrice = parseFloat(p2e(basePriceStr));
     const discount = parseFloat(p2e(discountStr) || "0");
+    const isActiveRaw = formData.get("isActive");
+    const isActive = isActiveRaw !== null ? (isActiveRaw === "true" || isActiveRaw === "on" || isActiveRaw === "1") : (oldProduct.isActive ?? true);
     
     // Parse existing images that weren't deleted by user
     let existingImages: string[] = [];
@@ -342,6 +347,7 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
       discount,
       categoryId,
       images: finalImages,
+      isActive,
     });
 
     // Handle variants
@@ -429,7 +435,7 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
       action: 'UPDATE',
       entity: 'Product',
       entityId: id,
-      description: `ویرایش اطلاعات محصول "${name}"`
+      description: `ویرایش اطلاعات محصول "${name}" (وضعیت: ${isActive ? 'فعال' : 'غیرفعال'})`
     });
 
   } catch (error) {

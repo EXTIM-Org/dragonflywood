@@ -7,6 +7,7 @@ const CACHE_TTL = 15 * 60; // 15 minutes
 export async function getSimilarProducts(productId: string, categoryId: string, limit: number = 4) {
   return withCache(`cache:products:similar:${productId}:${categoryId}:${limit}`, CACHE_TTL, async () => {
     return await db.orm.public.Product
+      .where((p) => p.isActive.eq(true))
       .where((p) => p.categoryId.eq(categoryId))
       .where((p) => p.id.neq(productId))
       .include("variants", (v) => v.select("id", "name", "sku", "price").include("inventory"))
@@ -21,6 +22,7 @@ export async function getSimilarProducts(productId: string, categoryId: string, 
 export async function getPopularProducts(limit: number = 8) {
   return withCache(`cache:products:popular:${limit}`, CACHE_TTL, async () => {
     return await db.orm.public.Product
+      .where((p) => p.isActive.eq(true))
       .include("variants", (v) => v.select("id", "name", "sku", "price").include("inventory"))
       .include("flashSale")
       .orderBy([(p) => p.salesCount.desc(), (p) => p.viewCount.desc()])
@@ -33,6 +35,7 @@ export async function getPopularProducts(limit: number = 8) {
 export async function getSpecialOffers(limit: number = 8) {
   return withCache(`cache:products:special-offers:${limit}`, CACHE_TTL, async () => {
     return await db.orm.public.Product
+      .where((p) => p.isActive.eq(true))
       .where((p) => p.discount.gt(0))
       .include("variants", (v) => v.select("id", "name", "sku", "price").include("inventory"))
       .include("flashSale")
@@ -46,6 +49,7 @@ export async function getSpecialOffers(limit: number = 8) {
 export async function getNewArrivals(limit: number = 8) {
   return withCache(`cache:products:new-arrivals:${limit}`, CACHE_TTL, async () => {
     return await db.orm.public.Product
+      .where((p) => p.isActive.eq(true))
       .include("variants", (v) => v.select("id", "name", "sku", "price").include("inventory"))
       .include("flashSale")
       .orderBy((p) => p.createdAt.desc())
@@ -85,7 +89,7 @@ export async function getFrequentlyBoughtTogether(productId: string, limit: numb
     const productFrequency = new Map<string, { count: number, product: any }>();
     
     for (const item of relatedOrderItems) {
-      if (item.variant && item.variant.product && item.variant.productId !== productId) {
+      if (item.variant && item.variant.product && item.variant.product.isActive !== false && item.variant.productId !== productId) {
         const relatedProductId = item.variant.productId;
         const existing = productFrequency.get(relatedProductId);
         if (existing) {
@@ -117,7 +121,7 @@ export async function getFlashSales(limit: number = 8) {
       .limit(limit)
       .all();
       
-    return sales.map(s => s.product).filter(Boolean);
+    return sales.map(s => s.product).filter(p => p && p.isActive !== false);
   });
 }
 

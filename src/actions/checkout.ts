@@ -144,6 +144,9 @@ export async function processCheckout(prevState: unknown, formData: FormData) {
       if (!variant || !product) {
         return { error: "برخی از محصولات سبد خرید شما دیگر در سیستم موجود نیستند. لطفاً سبد خرید خود را بروزرسانی کنید." };
       }
+      if (product.isActive === false) {
+        return { error: `محصول "${product.name}" غیرفعال شده و در حال حاضر برای فروش در دسترس نیست. لطفاً آن را از سبد خرید حذف کنید.` };
+      }
       if (!Number.isSafeInteger(cartItem.quantity) || cartItem.quantity <= 0) {
         return { error: "تعداد یکی از کالاهای سبد خرید نامعتبر است. لطفاً سبد خرید را بروزرسانی کنید." };
       }

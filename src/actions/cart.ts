@@ -87,6 +87,11 @@ export async function addToCartServer(variantId: string, quantity: number) {
   const userId = session.userId as string;
 
   try {
+    const variant = await db.orm.public.ProductVariant.where({ id: variantId }).include('product').first();
+    if (!variant || !variant.product || variant.product.isActive === false) {
+      return { success: false, error: "این کالا در حال حاضر برای فروش در دسترس نیست." };
+    }
+
     const inventory = await db.orm.public.Inventory.where({ variantId }).first();
     
     if (!inventory) {
